@@ -31,13 +31,12 @@ gh run download "$GITHUB_RUN_ID" \
 
 pushd artifacts/ || exit 1
 echo "Found artifacts:"
-ls
-for i in $(find -mindepth 1 -maxdepth 1 -type d); do
-	mv "$i"/* .
-	rm -rf "$i"
-done
+ls -la
+# Flatten any subdirectories without re-zipping or extracting
+find . -mindepth 2 -type f -exec mv -t . {} +
+find . -mindepth 1 -type d -exec rm -rf {} +
 echo "Repackaged artifacts:"
-ls -R
+ls -la
 popd || exit 1
 
 #echo "Generated notes:"
@@ -49,7 +48,16 @@ popd || exit 1
 #fi
 
 sleep 10s
-gh release create "$RELEASE_TAG" artifacts/* \
+shopt -s nullglob
+FILES_TO_UPLOAD=(artifacts/*)
+FILES_ONLY=()
+for f in "${FILES_TO_UPLOAD[@]}"; do
+	if [ -f "$f" ]; then
+		FILES_ONLY+=("$f")
+	fi
+done
+
+gh release create "$RELEASE_TAG" "${FILES_ONLY[@]}" \
 	--title "$RELEASE_NAME Continuous $BRANCH_NAME Build" \
 	--target "$GITHUB_SHA" \
 	--repo "$GITHUB_REPOSITORY" \

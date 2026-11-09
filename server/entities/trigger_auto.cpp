@@ -63,7 +63,7 @@ void CAutoTrigger::KeyValue(KeyValueData* pkvd)
 
 void CAutoTrigger::Spawn(void)
 {
-	if (triggerType == -1)
+	if ((int)triggerType == -1)
 		triggerType = USE_OFF;	// "triggerstate" is present and set to 'OFF'
 	else if (!triggerType)
 		triggerType = USE_ON;	// "triggerstate" is missing - defaulting to 'ON'

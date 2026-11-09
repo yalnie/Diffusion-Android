@@ -35,6 +35,17 @@ enginefuncs_t g_engfuncs;
 globalvars_t *gpGlobals;
 server_physics_api_t g_physfuncs;
 
+#if defined(__ANDROID__) || defined(ANDROID)
+#include <unistd.h>
+extern "C" int android_getCpuCount(void)
+{
+	long count = sysconf(_SC_NPROCESSORS_ONLN);
+	if (count <= 0)
+		count = sysconf(_SC_NPROCESSORS_CONF);
+	return count > 0 ? (int)count : 1;
+}
+#endif
+
 // Main DLL entry point
 #if XASH_WIN32
 BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )

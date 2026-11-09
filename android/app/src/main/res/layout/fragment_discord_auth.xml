@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<ScrollView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:padding="16dp">
+
+			<com.google.android.material.textview.MaterialTextView
+				android:id="@+id/authStatus"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/discord_not_logged_in"
+				android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+			<com.google.android.material.progressindicator.LinearProgressIndicator
+				android:id="@+id/authProgress"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="8dp"
+				android:indeterminate="true"
+				android:visibility="gone" />
+
+			<com.google.android.material.textview.MaterialTextView
+				android:id="@+id/authElapsed"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="4dp"
+				android:visibility="gone"
+				android:textAppearance="?attr/textAppearanceBodySmall" />
+
+			<!-- User Info Card (shown when logged in) -->
+			<com.google.android.material.card.MaterialCardView
+				android:id="@+id/userCard"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="12dp"
+				android:visibility="gone"
+				app:cardCornerRadius="12dp"
+				app:strokeWidth="1dp">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="center_vertical"
+					android:orientation="horizontal"
+					android:padding="12dp">
+
+					<ImageView
+						android:id="@+id/userAvatar"
+						android:layout_width="48dp"
+						android:layout_height="48dp"
+						android:contentDescription="@null"
+						android:scaleType="centerCrop"
+						android:src="@drawable/ic_baseline_discord_24" />
+
+					<LinearLayout
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_marginStart="12dp"
+						android:layout_weight="1"
+						android:orientation="vertical">
+
+						<com.google.android.material.textview.MaterialTextView
+							android:id="@+id/userName"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="Discord User"
+							android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+						<com.google.android.material.textview.MaterialTextView
+							android:id="@+id/userStatusBadge"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/discord_connected"
+							android:textColor="@color/discord_green"
+							android:textAppearance="?attr/textAppearanceBodySmall" />
+
+					</LinearLayout>
+
+				</LinearLayout>
+
+			</com.google.android.material.card.MaterialCardView>
+
+			<!-- Token Input & Login Controls (Directly visible at top, like resvenclient) -->
+			<com.google.android.material.textfield.TextInputLayout
+				android:id="@+id/tokenLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="12dp"
+				android:hint="@string/discord_token_hint"
+				app:boxBackgroundMode="outline"
+				app:endIconMode="password_toggle">
+
+				<com.google.android.material.textfield.TextInputEditText
+					android:id="@+id/tokenInput"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:inputType="textPassword"
+					android:importantForAutofill="no" />
+
+			</com.google.android.material.textfield.TextInputLayout>
+
+			<!-- Button row: Save & Paste -->
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="8dp"
+				android:orientation="horizontal">
+
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/saveTokenButton"
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:text="@string/discord_token_save"
+					style="@style/Widget.Material3.Button.TonalButton" />
+
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/pasteTokenButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginStart="8dp"
+					android:text="@string/discord_token_paste"
+					style="@style/Widget.Material3.Button.OutlinedButton" />
+
+			</LinearLayout>
+
+			<!-- Web Login & Connect Buttons -->
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/connectButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="8dp"
+				android:text="@string/discord_connect_button"
+				app:icon="@drawable/ic_baseline_discord_24" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/loginWebButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="8dp"
+				android:text="@string/discord_login_web_button"
+				style="@style/Widget.Material3.Button.OutlinedButton" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/logoutButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="8dp"
+				android:text="@string/discord_logout_button"
+				android:textColor="@color/valve_red"
+				android:visibility="gone"
+				style="@style/Widget.Material3.Button.OutlinedButton" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/autoConnectSwitch"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="12dp"
+				android:text="@string/discord_auto_connect" />
+
+			<!-- Live Rich Presence Preview Card (Discord PC Style) -->
+			<com.google.android.material.card.MaterialCardView
+				android:id="@+id/previewCard"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				app:cardBackgroundColor="@color/discord_card_dark"
+				app:cardCornerRadius="12dp"
+				app:cardElevation="2dp">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="vertical"
+					android:padding="14dp">
+
+					<com.google.android.material.textview.MaterialTextView
+						android:id="@+id/previewHeader"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="@string/discord_preview_title"
+						android:textColor="@color/discord_subtext"
+						android:textStyle="bold"
+						android:textSize="11sp" />
+
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginTop="10dp"
+						android:gravity="center_vertical"
+						android:orientation="horizontal">
+
+						<FrameLayout
+							android:layout_width="60dp"
+							android:layout_height="60dp">
+
+							<ImageView
+								android:id="@+id/previewLargeImage"
+								android:layout_width="54dp"
+								android:layout_height="54dp"
+								android:contentDescription="@null"
+								android:scaleType="fitCenter"
+								android:src="@mipmap/ic_launcher" />
+
+							<ImageView
+								android:id="@+id/previewSmallImage"
+								android:layout_width="20dp"
+								android:layout_height="20dp"
+								android:layout_gravity="bottom|end"
+								android:contentDescription="@null"
+								android:scaleType="fitCenter"
+								android:src="@mipmap/ic_launcher" />
+
+						</FrameLayout>
+
+						<LinearLayout
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="12dp"
+							android:layout_weight="1"
+							android:orientation="vertical">
+
+							<com.google.android.material.textview.MaterialTextView
+								android:id="@+id/previewTitle"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:text="@string/discord_game_name"
+								android:textColor="@android:color/white"
+								android:textStyle="bold"
+								android:textSize="15sp" />
+
+							<com.google.android.material.textview.MaterialTextView
+								android:id="@+id/previewDetails"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:textColor="#DBDEE1"
+								android:textSize="13sp"
+								android:visibility="gone" />
+
+							<com.google.android.material.textview.MaterialTextView
+								android:id="@+id/previewState"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:text="@string/discord_in_menus"
+								android:textColor="#DBDEE1"
+								android:textSize="13sp" />
+
+							<com.google.android.material.textview.MaterialTextView
+								android:id="@+id/previewTimer"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:text="00:00 elapsed"
+								android:textColor="#DBDEE1"
+								android:textSize="13sp" />
+
+						</LinearLayout>
+
+					</LinearLayout>
+
+				</LinearLayout>
+
+			</com.google.android.material.card.MaterialCardView>
+
+		</LinearLayout>
+	</ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

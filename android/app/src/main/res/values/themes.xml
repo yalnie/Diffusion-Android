@@ -1,0 +1,23 @@
+<resources>
+
+	<style name="Theme.App" parent="Theme.Material3.Dark.NoActionBar">
+		<item name="colorPrimary">@color/diffusion_blue</item>
+		<item name="colorPrimaryDark">@color/hl_dark_grey</item>
+		<!--        <item name="colorPrimaryContainer">@color/valve_red</item>-->
+		<item name="colorSurface">@color/hl_grey</item>
+		<item name="colorSurfaceVariant">@color/hl_grey</item>
+		<item name="android:colorBackground">@color/hl_dark_grey</item>
+		<item name="colorControlNormal">@color/diffusion_blue</item>
+		<item name="colorOnPrimary">@color/hl_dark_grey</item>
+		<!--        <item name="colorOnPrimaryContainer">@android:color/white</item>-->
+		<!--        <item name="colorOnSurface">@android:color/white</item>-->
+		<!--        <item name="colorOnSurfaceVariant">@android:color/white</item>-->
+
+		<!--        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>-->
+
+		<!-- more colors -->
+		<item name="colorOnPrimaryContainer">@color/diffusion_blue</item>
+		<item name="colorPrimaryContainer">@color/diffusion_blue_dark</item>
+		<item name="colorSecondary">@color/diffusion_blue_light</item>
+	</style>
+</resources>

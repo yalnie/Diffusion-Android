@@ -1203,7 +1203,7 @@ int CHud::MsgFunc_ServerName( const char *pszName, int iSize, void *pbuf )
 	BEGIN_READ( pszName, pbuf, iSize );
 	Q_strncpy( m_szServerName, READ_STRING(), sizeof( m_szServerName ) );
 	m_szServerName[sizeof( m_szServerName ) - 1] = 0;
-#if XASH_64BIT && XASH_WIN32
+#if (XASH_64BIT && XASH_WIN32) || defined(__ANDROID__)
 	discord_integration::update();
 #endif
 	return 0;

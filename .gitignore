@@ -6,6 +6,12 @@
 3rd-party/game_launch
 3rd-party/physx
 3rd-party/physx-rs
+3rdparty/
+android/.gradle/
+android/app/build/
+android/app/src/main/jniLibs/
+android/build/
+.gradle/
 # User-specific files
 *.rsuser
 *.suo

@@ -319,7 +319,7 @@ public:
 
 	const char*	GetDebugName()
 	{
-		if( this == NULL || pev == NULL )
+		if( pev == NULL )
 			return "null";
 
 		if( pev->targetname != NULL_STRING ) 

@@ -80,7 +80,7 @@ void CAmmoCrate::KeyValue(KeyValueData* pkvd)
 				UTIL_StripToken(pkvd->szKeyName, tmp);
 
 				m_weaponNames[i] = ALLOC_STRING(tmp);
-				if (tmp != "gametext")
+				if (Q_strcmp(tmp, "gametext") != 0)
 				{
 					m_weaponCount[i] = Q_atoi(pkvd->szValue);
 					m_weaponCount[i] = Q_max(1, m_weaponCount[i]);

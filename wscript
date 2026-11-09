@@ -147,7 +147,8 @@ def configure(conf):
 			msg='Checking if cmath is usable', mandatory = False)
 	conf.define_cond('HAVE_CMATH', cmath_usable)
 
-	conf.env.append_unique('CXXFLAGS', ['-Wno-invalid-offsetof', '-fno-exceptions'])
+	conf.env.append_unique('CFLAGS', ['-fsigned-char'])
+	conf.env.append_unique('CXXFLAGS', ['-fsigned-char', '-Wno-invalid-offsetof', '-fno-exceptions', '-Wno-tautological-constant-out-of-range-compare', '-Wno-tautological-undefined-compare'])
 	conf.define('stricmp', 'strcasecmp', quote=False)
 	conf.define('strnicmp', 'strncasecmp', quote=False)
 	conf.define('_snprintf', 'snprintf', quote=False)
@@ -176,8 +177,13 @@ def configure(conf):
 	if conf.env.HLDEMO_BUILD and conf.env.OEM_BUILD:
 		conf.fatal('Don\'t mix Demo and OEM builds!')
 
+	if conf.check_cxx(fragment='#ifndef __ANDROID__\n#error not android\n#endif\nint main(){return 0;}', mandatory=False):
+		conf.env.DEST_OS = 'android'
+		conf.define('ANDROID', 1)
+		conf.define('__ANDROID__', 1)
+
 	# strip lib from pattern
-	if conf.env.cxxshlib_PATTERN.startswith('lib'):
+	if conf.env.DEST_OS != 'android' and conf.env.cxxshlib_PATTERN.startswith('lib'):
 		conf.env.cxxshlib_PATTERN = conf.env.cxxshlib_PATTERN[3:]
 
 	conf.load('library_naming')

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_global_arguments" translatable="false">-console</string>
+    <string name="about">ABOUT</string>
+    <string name="about_title">About</string>
+    <string name="app_name" translatable="false">Diffusion</string>
+    <string name="launch">LAUNCH</string>
+    <string name="library">Library</string>
+    <string name="dedicated_server">Dedicated</string>
+    <string name="app_settings">Settings</string>
+    <string name="game_settings">Game Settings</string>
+    <string name="game_settings_command_line">Command-line arguments</string>
+    <string name="game_settings_volume_buttons">Use volume buttons</string>
+    <string name="preferences_package_name">Libraries package</string>
+    <string name="preferences_separate_libraries">Libraries from separate packages</string>
+    <string name="preferences_client_package">Client package</string>
+    <string name="preferences_server_package">Server package</string>
+    <string name="preferences_use_icons">Use icons instead of backgrounds</string>
+    <string name="game_data_location">Default data location</string>
+    <string name="game_data_location_not_local_storage">This folder is not located on the device\'s storage. Cloud services and virtual folders cannot be used as a game data location. Choose a folder on the internal storage or a mounted SD card.</string>
+    <string name="game_data_location_invalid_path">Could not resolve the selected folder to a real directory path. Try selecting it again.</string>
+    <string name="game_data_location_volume_root">The root of a storage cannot be used as the game data location. Create a folder inside it (for example, xash) and select that folder instead.</string>
+    <string name="game_data_location_volume_unavailable">The selected storage volume is unavailable. Make sure the SD card or USB drive is inserted and mounted.</string>
+    <string name="game_data_location_not_a_directory">The selected item is not a readable folder. Try selecting it again.</string>
+    <string name="game_data_location_read_only">The selected folder is not writable. The engine needs to write saves and configuration files into the game data location, so read-only storages cannot be used.</string>
+    <string name="game_data_location_media_directory">Standard media folders such as DCIM, Pictures, Movies or Music and the folders inside them cannot be used: a .nomedia marker file is created in the game data location, which would hide the contents of the folder from gallery and media player apps. Choose or create a separate folder for the games, for example in the root of the storage, and select it instead.</string>
+    <string name="game_data_location_removable_restricted">On Android 4.4-10, writing to arbitrary folders on removable storage is restricted. Use internal storage or select a folder inside %1$s, if available.</string>
+    <string name="game_data_location_unreadable">The contents of this folder cannot be read.</string>
+    <string name="game_data_location_picker_unavailable">This device has no system folder picker.</string>
+    <string name="game_data_location_select_parent">Select the folder that contains game folders (for example, diffusion), not one of the game folders itself.</string>
+    <string name="game_data_location_empty_title">No games found</string>
+    <string name="game_data_location_empty_message">The selected folder does not contain any game directories (folders with a liblist.gam or gameinfo.txt file). Use it as the game data location anyway?</string>
+    <string name="game_data_location_use_anyway">Use anyway</string>
+    <string name="file_access_required">All-files access required</string>
+    <string name="file_access_message">All-files access is required for the app to function properly.</string>
+    <string name="select_current_directory">Select current directory</string>
+    <string name="external_storage_required">External storage access required</string>
+    <string name="external_storage_message">External storage access is required for the app to function properly.</string>
+
+    <string name="open_settings">Open Settings</string>
+    <string name="done_check_permissions">Done! Check permissions</string>
+    <string name="grant_permissions">Grant</string>
+
+    <string name="storage_settings">Storage Settings</string>
+    <string name="toggle_storage_location">Toggle Storage Location</string>
+    <string name="using_internal_storage">Using: Internal Storage (Android/data)</string>
+    <string name="using_external_storage">Using: External Storage (xash folder)</string>
+    <string name="external_storage_warning_title">Switch to External Storage?</string>
+    <string name="external_storage_warning_message">Diffusion on External Storage run significantly slower and can be unstable! Please stay on Internal Storage unless you need direct file access.</string>
+    <string name="external_storage_warning_ok">OK, use External</string>
+    <string name="internal_storage_path">Internal Storage</string>
+    <string name="external_storage_path">External Storage</string>
+    <string name="global_settings">Game Settings</string>
+    <string name="global_command_line">Command-line Arguments</string>
+    <string name="global_command_line_summary">Always applied to all games</string>
+    <string name="global_command_line_dialog">Enter command-line arguments</string>
+    <string name="render_resolution">Render resolution</string>
+    <string name="render_resolution_summary">Native display resolution</string>
+    <string name="render_resolution_dialog">Enter render resolution</string>
+    <string name="render_resolution_dialog_summary">Leave empty to use native display resolution</string>
+    <string name="stretch_resolution">Fullscreen</string>
+    <string name="stretch_resolution_summary">Scale the selected render resolution to fill the screen</string>
+    <string name="keyboard_pans_screen">Keyboard resizes screen</string>
+    <string name="keyboard_pans_screen_summary">Pan the game view when the keyboard is shown (keeps the surface size intact)</string>
+    <string name="fix_font">Fix font</string>
+    <string name="fix_font_summary">Fix con_oldfont and con_fontscale behavior</string>
+
+    <!-- Crash reporting -->
+    <string name="crash_dialog_title">Diffusion crashed last time</string>
+    <string name="crash_send_to_developers">Send to developers</string>
+    <string name="crash_share">Share</string>
+    <string name="crash_dismiss">Dismiss</string>
+    <string name="crash_logs">Crash logs</string>
+    <string name="crash_logs_empty">No crash logs recorded</string>
+    <string name="crash_log_delete">Delete</string>
+    <string name="crash_email_subject" translatable="false">Diffusion crash report</string>
+    <string name="crash_email_body">Crash details are attached. Please describe in as much detail as possible what you were doing when the game crashed — every little thing helps us fix it!</string>
+    <string name="crash_no_mail_app_title">No mail app found</string>
+    <string name="crash_no_mail_app_message">No email client is installed on this device. Install one (or use Share to send the report another way) and try again.</string>
+
+    <string name="share_engine_log">Share engine.log</string>
+    <string name="engine_log_not_found">engine.log was not found. Run the game with -log enabled, then try again.</string>
+    <string name="engine_log_share_failed">Unable to share engine.log. Please check file access and make sure a sharing app is installed.</string>
+    <string name="microphone">Microphone</string>
+    <string name="microphone_permission_denied">Microphone access was denied. You can still hear other players. Enable microphone access in Android Settings to speak.</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="clear">Clear</string>
+    <string name="info">ABOUT</string>
+
+    <!-- Game data downloader -->
+    <string name="download_game">Download Game</string>
+    <string name="install_diffusion_title">Install Diffusion? (~2.8 GB)</string>
+    <string name="no_game_data_found">No game data found</string>
+    <string name="no_game_data_message">Diffusion game data was not found. Would you like to download it from itch.io now? (~2.8 GB)</string>
+    <string name="download_now">Download now</string>
+    <string name="no_thanks">No thanks</string>
+    <string name="overwrite_confirm_title">Game data already exists</string>
+    <string name="overwrite_confirm_message">Diffusion game data already exists in this location. Download again to overwrite?</string>
+    <string name="overwrite">Overwrite</string>
+    <string name="keep">Keep</string>
+    <string name="downloading">Downloading…</string>
+    <string name="download_complete">Download complete</string>
+    <string name="download_complete_message">Diffusion has been downloaded and installed successfully!</string>
+    <string name="download_failed">Download Failed</string>
+    <string name="download_cancelled">Download cancelled</string>
+    <string name="extracting_game_files">Extracting game files…</string>
+    <string name="storage_space_low">Low storage space</string>
+    <string name="storage_space_low_message">At least 6.5 GB of free space is recommended to download and install Diffusion.</string>
+
+    <!-- Discord Rich Presence -->
+    <string name="discord_rpc">Discord RPC</string>
+    <string name="discord_not_logged_in">Not connected to Discord</string>
+    <string name="discord_logged_in">Logged in as %1$s</string>
+    <string name="discord_connecting">Connecting to Discord…</string>
+    <string name="discord_connected">Connected to Discord Gateway</string>
+    <string name="discord_disconnected">Disconnected from Discord</string>
+    <string name="discord_error">Discord error: %1$s</string>
+    <string name="discord_login_web_button">Sign In with Discord</string>
+    <string name="discord_connect_button">Start Discord RPC</string>
+    <string name="discord_disconnect_button">Stop Discord RPC</string>
+    <string name="discord_logout_button">Log Out</string>
+    <string name="discord_logout_confirm_title">Log out of Discord?</string>
+    <string name="discord_logout_confirm_message">This will remove your saved Discord token and user information.</string>
+    <string name="discord_token_hint">Discord User Token</string>
+    <string name="discord_token_save">Save Token</string>
+    <string name="discord_token_paste">Paste</string>
+    <string name="discord_token_saved">Token saved successfully</string>
+    <string name="discord_token_empty_error">Please enter a valid Discord token</string>
+    <string name="discord_token_help">Sign in above or paste your Discord user token manually.</string>
+    <string name="discord_auto_connect">Auto-connect Discord RPC on game launch</string>
+    <string name="discord_preview_title">PLAYING A GAME</string>
+    <string name="discord_game_name">Diffusion</string>
+    <string name="discord_in_menus">In Menus</string>
+    <string name="discord_singleplayer">Singleplayer</string>
+    <string name="discord_service_channel_name">Discord RPC</string>
+    <string name="discord_service_channel_desc">Diffusion Discord Rich Presence background service</string>
+    <string name="discord_service_running">Discord Rich Presence Active</string>
+    <string name="discord_login_title">Discord Sign In</string>
+</resources>

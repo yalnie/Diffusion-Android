@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="valve_red">#F74843</color>
+	<color name="diffusion_blue">#46A9FF</color>
+	<color name="diffusion_blue_dark">#002B4D</color>
+	<color name="diffusion_blue_light">#A4D5FF</color>
+	<color name="black">#000000</color>
+	<color name="hl_dark_grey">#151515</color>
+	<color name="hl_grey">#292929</color>
+	<color name="discord_blurple">#5865F2</color>
+	<color name="discord_dark">#2C2F33</color>
+	<color name="discord_card_dark">#1E1F22</color>
+	<color name="discord_green">#57F287</color>
+	<color name="discord_red">#ED4245</color>
+	<color name="discord_subtext">#949BA4</color>
+</resources>
+

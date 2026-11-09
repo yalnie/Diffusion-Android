@@ -167,7 +167,7 @@ the hud variables.
 */
 void HUD_Init( void )
 {
-#if XASH_64BIT && XASH_WIN32
+#if (XASH_64BIT && XASH_WIN32) || defined(__ANDROID__)
 	discord_integration::initialize();
 #endif
 	
@@ -189,7 +189,7 @@ void HUD_Shutdown( void )
 	// diffusion - save achievement stats
 	gHUD.m_StatusIconsAchievement.SaveAchievementFile();
 
-#if XASH_64BIT && XASH_WIN32
+#if (XASH_64BIT && XASH_WIN32) || defined(__ANDROID__)
 	discord_integration::shutdown();
 #endif
 	
@@ -232,7 +232,7 @@ returns 1 if anything has been changed, 0 otherwise.
 */
 int HUD_UpdateClientData(client_data_t * pcldata, float flTime)
 {
-#if XASH_64BIT && XASH_WIN32
+#if (XASH_64BIT && XASH_WIN32) || defined(__ANDROID__)
 	discord_integration::on_update_client_data();
 #endif
 	
@@ -294,7 +294,7 @@ Called by engine every frame that client .dll is loaded
 */
 void HUD_Frame( double time )
 {
-#if XASH_64BIT && XASH_WIN32
+#if (XASH_64BIT && XASH_WIN32) || defined(__ANDROID__)
 	discord_integration::on_frame();
 #endif
 

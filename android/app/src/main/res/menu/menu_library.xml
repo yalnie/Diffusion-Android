@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+	<item
+		android:id="@+id/action_download"
+		android:icon="@drawable/ic_baseline_download_24"
+		android:title="@string/download_game"
+		app:showAsAction="always" />
+	<item
+		android:id="@+id/action_discord"
+		android:icon="@drawable/ic_baseline_discord_24"
+		android:title="@string/discord_rpc"
+		app:showAsAction="always" />
+</menu>

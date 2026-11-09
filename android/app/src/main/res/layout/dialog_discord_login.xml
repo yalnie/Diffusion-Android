@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="?android:attr/colorBackground"
+	android:orientation="vertical">
+
+	<com.google.android.material.appbar.MaterialToolbar
+		android:id="@+id/loginToolbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		app:title="@string/discord_login_title"
+		app:navigationIcon="?attr/homeAsUpIndicator" />
+
+	<com.google.android.material.progressindicator.LinearProgressIndicator
+		android:id="@+id/loginProgressBar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:indeterminate="true"
+		android:visibility="visible" />
+
+	<FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1">
+
+		<WebView
+			android:id="@+id/loginWebView"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent" />
+
+		<LinearLayout
+			android:id="@+id/errorContainer"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:gravity="center"
+			android:orientation="vertical"
+			android:padding="24dp"
+			android:visibility="gone">
+
+			<com.google.android.material.textview.MaterialTextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Unable to load Discord login page.\nIf Discord is blocked, please connect to a VPN or enter your token manually."
+				android:textAlignment="center"
+				android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/retryButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				android:text="Retry" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/enterTokenManualButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="8dp"
+				android:text="Enter Token Manually"
+				style="@style/Widget.Material3.Button.OutlinedButton" />
+
+		</LinearLayout>
+
+	</FrameLayout>
+
+</LinearLayout>

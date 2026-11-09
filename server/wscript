@@ -49,13 +49,21 @@ def build(bld):
 	physx_includes = [physx_root.find_node(inc) for inc in manifest['includes']]
 	physx_include_paths = [n.abspath() for n in physx_includes if n]
 
+	physx_defines = list(manifest['defines'])
+	server_libs = []
+	if bld.env.DEST_OS == 'android':
+		physx_defines += ['ANDROID=1', 'PX_ANDROID=1']
+		server_libs = ['dl', 'log', 'm']
+	elif bld.env.DEST_OS != 'win32':
+		server_libs = ['pthread', 'dl', 'm']
+
 	bld.stlib(
 		source   = physx_sources,
 		target   = 'physx',
 		name     = 'physx',
 		features = 'cxx',
 		includes = physx_include_paths,
-		defines  = manifest['defines'],
+		defines  = physx_defines,
 		cxxflags = ['-std=c++14', '-w', '-fno-strict-aliasing', '-fexceptions'],
 		idx = bld.get_taskgen_count()
 	)
@@ -70,7 +78,7 @@ def build(bld):
 			os.path.join(bld.env.PHYSX_SDK, 'pxshared', 'include'),
 		defines  = ['PX_PHYSX_STATIC_LIB'],
 		use      = 'physx',
-		lib      = ['pthread', 'dl'] if bld.env.DEST_OS != 'win32' else [],
+		lib      = server_libs,
 		install_path = os.path.join(bld.env.GAMEDIR, bld.env.SERVER_INSTALL_DIR),
 		idx = bld.get_taskgen_count()
 	)
