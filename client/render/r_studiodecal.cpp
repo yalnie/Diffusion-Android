@@ -14,6 +14,9 @@ GNU General Public License for more details.
 */
 
 #include "hud.h"
+
+#if !STUDIODECAL_DISABLE
+
 #include "utils.h"
 #include "r_local.h"
 #include "com_model.h"
@@ -30,7 +33,7 @@ word CStudioModelRenderer :: CreateDecalList( void )
 	word handle = m_DecalList.AddToTail();
 
 	m_DecalList[handle].m_FirstMaterial = m_DecalMaterial.InvalidIndex();
-
+	
 	return handle;
 }
 
@@ -52,15 +55,25 @@ void CStudioModelRenderer :: DestroyDecalList( word handle )
 	m_DecalList.Remove( handle );
 }
 
-void CStudioModelRenderer :: StudioClearDecals( void )
+void CStudioModelRenderer::StudioClearDecals( void )
 {
-	// NOTE: should destroy in reverse-oreder because it's linked list not array!
-	for( int i = m_ModelInstances.Count(); --i >= 0; )
-          {
-		ModelInstance_t& inst = m_ModelInstances[i];
+	// m_ModelInstances is a linked list
+	// DestroyDecalList only removes from m_DecalList/m_DecalMaterial,
+	// it's safe to walkthrough m_ModelInstances
+	for( word i = m_ModelInstances.Head(); m_ModelInstances.IsValidIndex( i ); i = m_ModelInstances.Next( i ) )
+	{
+		ModelInstance_t &inst = m_ModelInstances[i];
 
 		if( inst.m_DecalHandle == INVALID_HANDLE )
-			continue;	// not initialized?
+			continue;	// no decals for this instance
+
+		// stale handle, don't touch m_DecalList with it, just reset
+		if( !m_DecalList.IsValidIndex( inst.m_DecalHandle ) )
+		{
+			ALERT( at_error, "StudioClearDecals: bad decal handle %i on instance %i\n", inst.m_DecalHandle, i );
+			inst.m_DecalHandle = INVALID_HANDLE;
+			continue;
+		}
 
 		DestroyDecalList( inst.m_DecalHandle );
 		inst.m_DecalHandle = INVALID_HANDLE;
@@ -105,18 +118,24 @@ int CStudioModelRenderer :: StudioDecalList( decallist_t *pBaseList, int count )
 	char decalname[64];
 	int total = 0;
 
-	for( int i = 0; i < m_ModelInstances.Count(); i++ )
-          {
-		word decalHandle = m_ModelInstances[i].m_DecalHandle;
+	for( word i = m_ModelInstances.Head(); m_ModelInstances.IsValidIndex( i ); i = m_ModelInstances.Next( i ) )
+	{
+		ModelInstance_t &inst = m_ModelInstances[i];
+		word decalHandle = inst.m_DecalHandle;
+
+		if( decalHandle == m_DecalList.InvalidIndex() || !m_DecalList.IsValidIndex( decalHandle ) )
+			continue;
+
+		// setup the decal entity
+		pEntity = inst.m_pEntity;
+		if( !pEntity )
+			continue;
 
 		if( decalHandle == INVALID_HANDLE )
 			continue;	// no decals for this entity
 
 		DecalModelList_t const& list = m_DecalList[decalHandle];
 		word decalMaterial = m_DecalList[decalHandle].m_FirstMaterial;
-
-		// setup the decal entity
-		pEntity = m_ModelInstances[i].m_pEntity;
 
 		for( word mat = list.m_FirstMaterial; mat != m_DecalMaterial.InvalidIndex(); mat = m_DecalMaterial.Next( mat ))
 		{
@@ -1273,7 +1292,7 @@ void CStudioModelRenderer :: DrawDecal( cl_entity_t *e )
 
 	// All decal vertex data is are stored in pose space
 	// So as long as the pose-to-world transforms are set, we're all ready!
-
+	
 	// Get the decal list for this lod
 	DecalModelList_t const& list = m_DecalList[inst->m_DecalHandle];
 
@@ -1352,7 +1371,7 @@ void CStudioModelRenderer :: DrawDecal( cl_entity_t *e )
 		if( valid && FBitSet( decalMaterial.flags, STUDIO_NF_HAS_ALPHA ))
 			GL_Cull( GL_NONE );
 		else GL_Cull( GL_FRONT );
-
+		
 		DrawDecalMaterial( decalMaterial, m_pworldtransform );
 	}
 
@@ -1365,3 +1384,5 @@ void CStudioModelRenderer :: DrawDecal( cl_entity_t *e )
 	GL_CleanUpTextureUnits( 0 );
 	GL_Cull( GL_FRONT );
 }
+
+#endif

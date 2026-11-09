@@ -5323,6 +5323,7 @@ void CBasePlayer::Spawn( void )
 	m_iClientSndRoomtype = -1;
 	m_iClientUseIcon = -1;
 	m_iClientHealth = -1;
+	m_iClientMaxHealth = -1;
 	m_iClientStamina = -1;
 	m_iClientBlastAbilityLVL = -1;
 	m_iClientBlastChargesReady = -1;
@@ -5971,14 +5972,15 @@ void CBasePlayer::SelectLastItem( void )
 	{
 		if( pCar )
 		{
-		//	if( pCar->CamUnlocked )
-		//	{
-				pCar->fMouseTouchedOFF = CAR_CAMERA_MOUSE_WAIT_OFF;
-				pCar->fMouseTouchedON = 0.0f;
-				pCar->CamUnlocked = false;
-		//	}
-		//	else
-				pCar->SecondaryCamera = !pCar->SecondaryCamera;
+			pCar->fMouseTouchedOFF = CAR_CAMERA_MOUSE_WAIT_OFF;
+			pCar->fMouseTouchedON = 0.0f;
+			pCar->CamUnlocked = false;
+			pCar->SecondaryCamera = !pCar->SecondaryCamera;
+
+			// reset both cameras' angles
+			pCar->CameraAngles = pCar->GetAbsAngles();
+			pCar->Camera2RotationX = 0;
+			pCar->Camera2RotationY = 0;
 		}
 
 		return;
@@ -6274,6 +6276,7 @@ Reset stuff so that the state is transmitted.
 void CBasePlayer :: ForceClientDllUpdate( void )
 {
 	m_iClientHealth  = -1;
+	m_iClientMaxHealth = -1;
 	m_iClientBattery = -1;
 	m_iClientSndRoomtype = -1;
 	m_iClientStamina = -1;
@@ -7172,7 +7175,7 @@ void CBasePlayer :: UpdateClientData( void )
 		m_iStartMessage = 0;
 	}
 
-	if ((int)pev->health != m_iClientHealth)
+	if( ((int)pev->health != m_iClientHealth) || ((int)pev->max_health != m_iClientMaxHealth) )
 	{
 		int iHealth = Q_max( pev->health, 0 );  // make sure that no negative health values are sent
 
@@ -7188,6 +7191,7 @@ void CBasePlayer :: UpdateClientData( void )
 		MESSAGE_END();
 
 		m_iClientHealth = pev->health;
+		m_iClientMaxHealth = pev->max_health;
 	}
 
 	if( ((int)m_flStaminaValue != m_iClientStamina) )
