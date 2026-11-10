@@ -14,6 +14,24 @@ default_prefix = '/'
 
 Context.Context.line_just = 60 # should fit for everything on 80x26
 
+def patch_mainui():
+	for p in [
+		os.path.join(top, '3rd-party', 'mainui_cpp', 'menus', 'Main.cpp'),
+		os.path.join(top, '..', 'Diffusion-Android-MainUI', 'menus', 'Main.cpp')
+	]:
+		if os.path.isfile(p):
+			try:
+				with open(p, 'r', encoding='utf-8') as f:
+					src = f.read()
+				if 'CMenuLinksMessageBox::' in src:
+					src = src.replace('void CMenuLinksMessageBox::_Init()', 'void _Init() override')
+					src = src.replace('void CMenuLinksMessageBox::_VidInit( void )', 'void _VidInit( void ) override')
+					with open(p, 'w', encoding='utf-8') as f:
+						f.write(src)
+					Logs.info('Patched %s (fixed MSVC-specific extra qualification for GCC/Clang)' % p)
+			except Exception as e:
+				Logs.warn('Failed to patch Main.cpp: %s' % e)
+
 @Configure.conf
 def get_taskgen_count(self):
 	try: idx = self.tg_idx_count
@@ -27,6 +45,7 @@ def remove_implib_install(self):
 		self.install_path_implib = None
 
 def options(opt):
+	patch_mainui()
 	opt.load('reconfigure compiler_optimizations compiler_cxx compiler_c clang_compilation_database strip_on_install subproject')
 
 	grp = opt.add_option_group('Common options')
@@ -39,6 +58,7 @@ def options(opt):
 	opt.add_subproject('client server 3rd-party/mainui_cpp 3rd-party/game_launch')
 
 def configure(conf):
+	patch_mainui()
 	conf.env.EXPORT_DEFINES_LIST = []
 	conf.load('fwgslib reconfigure compiler_optimizations')
 
@@ -190,6 +210,7 @@ def configure(conf):
 	conf.add_subproject('client server 3rd-party/mainui_cpp 3rd-party/game_launch')
 
 def build(bld):
+	patch_mainui()
 	if bld.is_install and not bld.options.destdir:
 		bld.fatal('Set the install destination directory using --destdir option')
 
