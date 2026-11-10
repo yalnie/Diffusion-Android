@@ -25,17 +25,15 @@ gh release delete "$RELEASE_TAG" \
 	--cleanup-tag \
 	--repo "$GITHUB_REPOSITORY" || true
 
-gh run download "$GITHUB_RUN_ID" \
-	--dir artifacts/ \
-	--repo "$GITHUB_REPOSITORY"
+mkdir -p artifacts/
+echo "Fetching artifacts directly from GitHub API..."
+gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '.artifacts[] | "\(.id) \(.name)"' | while read -r id name; do
+	echo "Downloading $name (id: $id)..."
+	gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" > "artifacts/$name"
+done
 
 pushd artifacts/ || exit 1
-echo "Found artifacts:"
-ls -la
-# Flatten any subdirectories without re-zipping or extracting
-find . -mindepth 2 -type f -exec mv -t . {} +
-find . -mindepth 1 -type d -exec rm -rf {} +
-echo "Repackaged artifacts:"
+echo "Downloaded artifacts:"
 ls -la
 popd || exit 1
 
