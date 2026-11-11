@@ -272,31 +272,30 @@ releases the scene, cooking, dispatcher, physics and foundation and clears all h
 */
 void CPhysicPhysX :: FreePhysic( void )
 {
-	if (m_pScene) { m_pScene->release(); }
-	if (m_pCooking) { m_pCooking->release(); }
-	if (m_pDispatcher) { m_pDispatcher->release(); }
-	if (m_pPhysics) { m_pPhysics->release(); }
+	if (m_pScene) { m_pScene->release(); m_pScene = nullptr; }
+	if (m_pCooking) { m_pCooking->release(); m_pCooking = nullptr; }
+	if (m_pDispatcher) { m_pDispatcher->release(); m_pDispatcher = nullptr; }
+	if (m_pPhysics) 
+	{ 
+		PxCloseExtensions();
+		m_pPhysics->release(); 
+		m_pPhysics = nullptr; 
+	}
 	if (m_pVisualDebugger) 
 	{
 		PxPvdTransport *transport = m_pVisualDebugger->getTransport();
 		m_pVisualDebugger->release();
+		m_pVisualDebugger = nullptr;
 		if (transport) {
 			transport->release();
 		}
 	}
 
-	PxCloseExtensions();
-	if (m_pFoundation) { m_pFoundation->release(); }
+	if (m_pFoundation) { m_pFoundation->release(); m_pFoundation = nullptr; }
 
 	m_eventHandler.reset();
 	m_contactModifyCallback.reset();
 	m_holdableController.reset();
-
-	m_pScene = nullptr;
-	m_pCooking = nullptr;
-	m_pPhysics = nullptr;
-	m_pVisualDebugger = nullptr;
-	m_pFoundation = nullptr;
 }
 
 /*

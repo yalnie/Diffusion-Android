@@ -286,17 +286,13 @@ static bool GL_ProcessShader( const char *filename, CVirtualFS *out, bool compat
 		return false;
 
 	// add internal defines
-#if defined(__ANDROID__) || defined(ANDROID)
-	out->Printf( "#version 120\n" );
+	out->Printf( "#version 130\n" );
 	out->Printf( "#ifdef GL_ES\n" );
 	out->Printf( "precision highp float;\n" );
 	out->Printf( "precision highp int;\n" );
 	out->Printf( "precision highp sampler2D;\n" );
 	out->Printf( "precision highp samplerCube;\n" );
 	out->Printf( "#endif\n" );
-#else
-	out->Printf( "#version 130\n" );
-#endif
 	out->Printf( "#ifndef M_PI\n#define M_PI 3.14159265358979323846\n#endif\n" );
 	out->Printf( "#ifndef M_PI2\n#define M_PI2 6.28318530717958647692\n#endif\n" );
 	if( GL_Support( R_EXT_GPU_SHADER4 ))

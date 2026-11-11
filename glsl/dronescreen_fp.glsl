@@ -25,7 +25,7 @@ float rand(vec2 co)
 float sample_noise(vec2 fragCoord)
 {
 	vec2 uv = mod(gl_FragCoord.xy + vec2(0, 100. * u_RealTime), u_ScreenSize.xy);
-	float value = texture(u_NormalMap, uv / u_ScreenSize.xy).r;
+	float value = texture2D(u_NormalMap, uv / u_ScreenSize.xy).r;
 	return pow(value, 7.); // sharper ramp
 }
 
