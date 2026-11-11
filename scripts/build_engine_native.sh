@@ -72,7 +72,7 @@ download_file() {
 echo "=== Ensuring Xash3D FWGS repository is present ==="
 if [ ! -d "$XASH_ROOT" ]; then
     mkdir -p 3rd-party
-    git clone --depth 1 https://github.com/FWGS/xash3d-fwgs "$XASH_ROOT"
+    git clone --depth 1 -b gles https://github.com/yalnie/xash3d-fwgs "$XASH_ROOT" || git clone --depth 1 https://github.com/FWGS/xash3d-fwgs "$XASH_ROOT"
 fi
 
 pushd "$XASH_ROOT" > /dev/null

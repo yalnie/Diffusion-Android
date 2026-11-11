@@ -171,7 +171,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build/engine_prebuilts
-        key: xash-engine-${{ runner.os }}-v1-${{ hashFiles('scripts/build_engine_native.sh') }}
+        key: xash-engine-${{ runner.os }}-v2-${{ hashFiles('scripts/build_engine_native.sh') }}
 
     - name: Fetch dependencies
       env:

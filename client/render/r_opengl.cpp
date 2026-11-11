@@ -26,6 +26,31 @@ GNU General Public License for more details.
 glState_t glState;
 glConfig_t glConfig;
 
+static void APIENTRY Stub_DrawBuffer( GLenum mode )
+{
+	if( pglDrawBuffersARB )
+	{
+		GLenum b = mode;
+		pglDrawBuffersARB( 1, &b );
+	}
+}
+
+static void APIENTRY Stub_GetDoublev( GLenum pname, GLdouble *params )
+{
+	GLfloat f[16] = { 0 };
+	if( pglGetFloatv )
+		pglGetFloatv( pname, f );
+	for( int i = 0; i < 16; i++ ) params[i] = (GLdouble)f[i];
+}
+
+static void APIENTRY Stub_AlphaFunc( GLenum func, GLclampf ref )
+{
+}
+
+static void APIENTRY Stub_ClipPlane( GLenum plane, const GLdouble *equation )
+{
+}
+
 static const dllfunc_t opengl_110funcs[] =
 {
 { "glClearColor"         	, (void **)&pglClearColor },
@@ -35,7 +60,6 @@ static const dllfunc_t opengl_110funcs[] =
 { "glCullFace"           	, (void **)&pglCullFace },
 { "glDrawBuffer"         	, (void **)&pglDrawBuffer },
 { "glReadBuffer"         	, (void **)&pglReadBuffer },
-{ "glAccum"         	, (void **)&pglAccum },
 { "glEnable"             	, (void **)&pglEnable },
 { "glDisable"            	, (void **)&pglDisable },
 { "glEnableClientState"  	, (void **)&pglEnableClientState },
@@ -56,12 +80,10 @@ static const dllfunc_t opengl_110funcs[] =
 { "glDrawElements"       	, (void **)&pglDrawElements },
 { "glDrawArrays"       	, (void **)&pglDrawArrays },
 { "glColorMask"          	, (void **)&pglColorMask },
-{ "glIndexPointer"       	, (void **)&pglIndexPointer },
 { "glVertexPointer"      	, (void **)&pglVertexPointer },
 { "glNormalPointer"      	, (void **)&pglNormalPointer },
 { "glColorPointer"       	, (void **)&pglColorPointer },
 { "glTexCoordPointer"    	, (void **)&pglTexCoordPointer },
-{ "glArrayElement"       	, (void **)&pglArrayElement },
 { "glColor3f"            	, (void **)&pglColor3f },
 { "glColor3fv"           	, (void **)&pglColor3fv },
 { "glColor4f"            	, (void **)&pglColor4f },
@@ -496,7 +518,28 @@ void GL_CheckExtension( const char *name, const dllfunc_t *funcs, const char *cv
 	for( func = funcs; func && func->name != NULL; func++ )
 	{
 		// functions are cleared before all the extensions are evaluated
-		if(!(*func->func = (void *)GL_GetProcAddress( func->name )))
+		void *p = (void *)GL_GetProcAddress( func->name );
+		if( !p )
+		{
+			if( !Q_strcmp( func->name, "glClearDepth" ) )
+				p = (void *)GL_GetProcAddress( "glClearDepthf" );
+			else if( !Q_strcmp( func->name, "glDepthRange" ) )
+				p = (void *)GL_GetProcAddress( "glDepthRangef" );
+			else if( !Q_strcmp( func->name, "glDrawRangeElements" ) )
+				p = (void *)GL_GetProcAddress( "glDrawRangeElementsEXT" );
+			else if( !Q_strcmp( func->name, "glDrawBuffers" ) )
+				p = (void *)GL_GetProcAddress( "glDrawBuffersEXT" );
+			else if( !Q_strcmp( func->name, "glDrawBuffer" ) )
+				p = (void *)Stub_DrawBuffer;
+			else if( !Q_strcmp( func->name, "glGetDoublev" ) )
+				p = (void *)Stub_GetDoublev;
+			else if( !Q_strcmp( func->name, "glAlphaFunc" ) )
+				p = (void *)Stub_AlphaFunc;
+			else if( !Q_strcmp( func->name, "glClipPlane" ) )
+				p = (void *)Stub_ClipPlane;
+		}
+		*func->func = p;
+		if( !p )
 			GL_SetExtension( r_ext, false ); // one or more functions are invalid, extension will be disabled
 	}
 
@@ -554,12 +597,12 @@ static void GL_InitExtensions( void )
 	Msg( "CPU: %s\n", UTIL_GetCpuInfo() );
 #endif
 
-	// the renderer depends on the compatibility profile
-	// exit if engine reports something else
-	if( RENDER_GET_PARM( PARM_GL_CONTEXT_TYPE, 0 ) != CONTEXT_TYPE_GL )
+	// the renderer requires an OpenGL or OpenGL ES context
+	int ctxType = RENDER_GET_PARM( PARM_GL_CONTEXT_TYPE, 0 );
+	if( ctxType != CONTEXT_TYPE_GL && ctxType != CONTEXT_TYPE_GLES_2_X && ctxType != CONTEXT_TYPE_GLES_1_X )
 	{
 		g_fRenderInitialized = false;
-		HOST_ERROR( "This game requires the OpenGL renderer.\nGLES and OpenGL Core contexts are not supported.\n" );
+		HOST_ERROR( "This game requires an OpenGL or OpenGL ES context.\nSoftware contexts are not supported.\n" );
 		return;
 	}
 
@@ -767,7 +810,14 @@ static void GL_InitExtensions( void )
 		glConfig.max_varying_floats *= 4;
 	}
 
+#if defined(__ANDROID__) || defined(ANDROID)
+	// Mobile GPUs (Adreno, Mali) have a hardware limit of 256 vec4 vertex uniform vectors.
+	// 48 bones require 96 vec4 vectors (48 quat + 48 pos), safely staying well below the limit.
+	// 128 bones would require 256 vectors for bones alone and crash the Adreno driver (libGLESv2_adreno.so).
+	glConfig.max_skinning_bones = bound( 32, ( Q_max( glConfig.max_vertex_uniforms - MAX_RESERVED_UNIFORMS, 0 ) / 7 ), 48 );
+#else
 	glConfig.max_skinning_bones = bound( 0, ( Q_max( glConfig.max_vertex_uniforms - MAX_RESERVED_UNIFORMS, 0 ) / 7 ), MAXSTUDIOBONES );
+#endif
 
 	if( glConfig.max_skinning_bones < 32 )
 	{

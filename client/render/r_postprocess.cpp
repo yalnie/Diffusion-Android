@@ -89,10 +89,11 @@ static void InitAutoExposure(void)
 			exposure_storage_texture[i] = 0;
 		}
 
-		exposure_storage_texture[i] = CREATE_TEXTURE( va( "*exposure_storage%d", i ), 1, 1, NULL, TF_IMAGE | TF_ARB_16BIT );
+		exposure_storage_texture[i] = CREATE_TEXTURE( va( "*exposure_storage%d", i ), 1, 1, NULL, TF_IMAGE );
 
 		GL_Bind( GL_TEXTURE0, exposure_storage_texture[i] );
-		pglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, 1, 1, GL_RGB, GL_FLOAT, &color.x );
+		unsigned char default_exp[4] = { 204, 0, 0, 255 };
+		pglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, default_exp );
 		GL_Bind( GL_TEXTURE0, 0 );
 
 		if( exposure_storage_fbo[i] == 0 )
@@ -242,7 +243,14 @@ static void InitBloom( void )
 		tr.screen_fbo_texture_color = CREATE_TEXTURE( "*screen_temp_fbo_texture_color", glState.width, glState.height, NULL, TF_COLORBUFFER ); // was TF_HAS_ALPHA | TF_ARB_16BIT | TF_CLAMP | TF_ARB_FLOAT
 
 	GL_Bind( GL_TEXTURE0, tr.screen_fbo_texture_color );
-	pglGenerateMipmap( GL_TEXTURE_2D );
+	int w = glState.width;
+	int h = glState.height;
+	for( int i = 0; i <= 6; i++ )
+	{
+		pglTexImage2D( GL_TEXTURE_2D, i, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+		w = Q_max( 1, w / 2 );
+		h = Q_max( 1, h / 2 );
+	}
 	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );

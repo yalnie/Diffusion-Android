@@ -755,9 +755,9 @@ static void Mod_LinkLeafLights( void )
 	leaf = (mworldleaf_t *)world->leafs;
 	lp = world->leaflights;
 
-	for( i = j = 0; i < world->numleafs; i++, leaf++ )
+	for( i = j = 0; i < world->numleafs && j < world->numleaflights; i++, leaf++ )
 	{
-		if( world->numleaflights > 0 && lp->leaf == leaf )
+		if( lp->leaf == leaf )
 		{
 			leaf->ambient_light = lp; // pointer to first light in the array that belong to this leaf
 
@@ -889,7 +889,10 @@ static void Mod_LoadLeafAmbientLighting( const byte *base, const dlump_t *l )
 	for( i = 0; i < count; i++, in++, out++ )
 	{
 		memcpy( &out->cube, &in->ambient, sizeof( dlightcube_t ) );
-		out->leaf = &world->leafs[in->leafnum];
+		if( in->leafnum >= 0 && in->leafnum < world->numleafs )
+			out->leaf = &world->leafs[in->leafnum];
+		else
+			out->leaf = NULL;
 		out->origin.x = in->origin[0];
 		out->origin.y = in->origin[1];
 		out->origin.z = in->origin[2];
