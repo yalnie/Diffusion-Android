@@ -60,7 +60,9 @@ uniform vec4 u_ScreenSizeInv;
 #define SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR 2.0
 
 #define mad(a, b, c) (a * b + c)
+#ifndef saturate
 #define saturate(a) clamp(a, 0.0 , 1.0)
+#endif
 
 #define SMAARound(v) round(v)
 //floor((v) + 0.5)

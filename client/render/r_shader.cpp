@@ -237,6 +237,178 @@ static bool GL_LoadSource( const char *filename, CVirtualFS *file )
 	return true;
 }
 
+static void GL_ReplaceSubstr( char *str, size_t maxlen, const char *from, const char *to )
+{
+	char temp[4096];
+	char *pos;
+	size_t from_len = strlen( from );
+	size_t to_len = strlen( to );
+
+	while( (pos = strstr( str, from )) != NULL )
+	{
+		size_t prefix_len = pos - str;
+		if( prefix_len + to_len + strlen( pos + from_len ) >= sizeof( temp ) ||
+		    prefix_len + to_len + strlen( pos + from_len ) >= maxlen )
+			break;
+
+		memcpy( temp, str, prefix_len );
+		memcpy( temp + prefix_len, to, to_len );
+		strcpy( temp + prefix_len + to_len, pos + from_len );
+		strcpy( str, temp );
+	}
+}
+
+static void GL_StripFloatSuffix( char *line )
+{
+	for( int i = 0; line[i] != '\0'; i++ )
+	{
+		if( line[i] == 'f' || line[i] == 'F' )
+		{
+			char next = line[i + 1];
+			if( (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z') ||
+			    (next >= '0' && next <= '9') || next == '_' )
+			{
+				continue;
+			}
+
+			int j = i - 1;
+			bool has_dot = false;
+			bool has_digit = false;
+			while( j >= 0 && ((line[j] >= '0' && line[j] <= '9') || line[j] == '.') )
+			{
+				if( line[j] == '.' )
+					has_dot = true;
+				else
+					has_digit = true;
+				j--;
+			}
+
+			if( has_dot && has_digit )
+			{
+				bool valid_prefix = (j < 0);
+				if( !valid_prefix )
+				{
+					char prev = line[j];
+					if( !((prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z') || prev == '_') )
+						valid_prefix = true;
+				}
+
+				if( valid_prefix )
+				{
+					memmove( &line[i], &line[i + 1], strlen( &line[i + 1] ) + 1 );
+					i--;
+				}
+			}
+		}
+	}
+}
+
+static void GL_SanitizeShaderLine( char *line, size_t maxlen )
+{
+	GL_StripFloatSuffix( line );
+
+	char *p;
+	// 1. sampleIndex * goldenAngle
+	if( (p = strstr( line, "sampleIndex * goldenAngle" )) != NULL )
+	{
+		if( p < line + 6 || strncmp( p - 6, "float(", 6 ) != 0 )
+		{
+			GL_ReplaceSubstr( line, maxlen, "sampleIndex * goldenAngle", "float( sampleIndex ) * goldenAngle" );
+		}
+	}
+
+	// 2. sampleIndex + 0.5
+	if( (p = strstr( line, "sampleIndex + 0.5" )) != NULL )
+	{
+		if( p < line + 6 || strncmp( p - 6, "float(", 6 ) != 0 )
+		{
+			GL_ReplaceSubstr( line, maxlen, "sampleIndex + 0.5", "float( sampleIndex ) + 0.5" );
+		}
+	}
+
+	// 3. inversesqrt( samplesCount )
+	if( strstr( line, "inversesqrt( samplesCount )" ) != NULL )
+	{
+		GL_ReplaceSubstr( line, maxlen, "inversesqrt( samplesCount )", "inversesqrt( float( samplesCount ) )" );
+	}
+
+	// 4. ang.y < 0
+	if( (p = strstr( line, "ang.y < 0" )) != NULL && *(p + 9) != '.' )
+	{
+		char temp[2048];
+		char *p2 = strstr( line, "+= 360" );
+		if( p2 && *(p2 + 6) != '.' )
+		{
+			Q_snprintf( temp, sizeof( temp ), "%.*sang.y < 0.0%.*s+= 360.0%s",
+				(int)(p - line), line, (int)(p2 - (p + 9)), p + 9, p2 + 6 );
+			Q_strncpy( line, temp, maxlen );
+		}
+		else
+		{
+			GL_ReplaceSubstr( line, maxlen, "ang.y < 0", "ang.y < 0.0" );
+		}
+	}
+
+	// 5. ang.x < 0
+	if( (p = strstr( line, "ang.x < 0" )) != NULL && *(p + 9) != '.' )
+	{
+		char temp[2048];
+		char *p2 = strstr( line, "+= 360" );
+		if( p2 && *(p2 + 6) != '.' )
+		{
+			Q_snprintf( temp, sizeof( temp ), "%.*sang.x < 0.0%.*s+= 360.0%s",
+				(int)(p - line), line, (int)(p2 - (p + 9)), p + 9, p2 + 6 );
+			Q_strncpy( line, temp, maxlen );
+		}
+		else
+		{
+			GL_ReplaceSubstr( line, maxlen, "ang.x < 0", "ang.x < 0.0" );
+		}
+	}
+
+	// 6. forward.z > 0
+	if( (p = strstr( line, "forward.z > 0" )) != NULL && *(p + 13) != '.' )
+	{
+		char temp[2048];
+		Q_snprintf( temp, sizeof( temp ), "%.*sforward.z > 0.0%s", (int)(p - line), line, p + 13 );
+		Q_strncpy( line, temp, maxlen );
+	}
+
+	// 7. forward.x != 0
+	if( (p = strstr( line, "forward.x != 0" )) != NULL && *(p + 14) != '.' )
+	{
+		char temp[2048];
+		Q_snprintf( temp, sizeof( temp ), "%.*sforward.x != 0.0%s", (int)(p - line), line, p + 14 );
+		Q_strncpy( line, temp, maxlen );
+	}
+
+	// 8. forward.y != 0
+	if( (p = strstr( line, "forward.y != 0" )) != NULL && *(p + 14) != '.' )
+	{
+		char temp[2048];
+		Q_snprintf( temp, sizeof( temp ), "%.*sforward.y != 0.0%s", (int)(p - line), line, p + 14 );
+		Q_strncpy( line, temp, maxlen );
+	}
+
+	// 9. ang.x = 270; or 90;
+	if( (p = strstr( line, "ang.x = 270;" )) != NULL )
+		GL_ReplaceSubstr( line, maxlen, "ang.x = 270;", "ang.x = 270.0;" );
+	if( (p = strstr( line, "ang.x = 90;" )) != NULL )
+		GL_ReplaceSubstr( line, maxlen, "ang.x = 90;", "ang.x = 90.0;" );
+
+	// 10. texture samplers
+	GL_ReplaceSubstr( line, maxlen, "texture( u_ColorMap", "texture2D( u_ColorMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture(u_ColorMap", "texture2D(u_ColorMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture( u_NormalMap", "texture2D( u_NormalMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture(u_NormalMap", "texture2D(u_NormalMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture( u_ScreenMap", "texture2D( u_ScreenMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture(u_ScreenMap", "texture2D(u_ScreenMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture( u_DepthMap", "texture2D( u_DepthMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture(u_DepthMap", "texture2D(u_DepthMap" );
+	GL_ReplaceSubstr( line, maxlen, "texture( iChannel", "texture2D( iChannel" );
+	GL_ReplaceSubstr( line, maxlen, "texture(iChannel", "texture2D(iChannel" );
+}
+
 static void GL_ParseFile( const char *filename, CVirtualFS *file, CVirtualFS *out )
 {
 	char	*pfile, token[256];
@@ -269,7 +441,11 @@ static void GL_ParseFile( const char *filename, CVirtualFS *file, CVirtualFS *ou
 //			out->Printf( "#file %s\n", filename );	// OpenGL doesn't support #file :-(
 			out->Printf( "#line %i\n", fileline );
 		}
-		else out->Printf( "%s\n", line );
+		else
+		{
+			GL_SanitizeShaderLine( line, sizeof( line ) );
+			out->Printf( "%s\n", line );
+		}
 		fileline++;
 	} while( ret != EOF );
 
@@ -295,6 +471,7 @@ static bool GL_ProcessShader( const char *filename, CVirtualFS *out, bool compat
 	out->Printf( "#endif\n" );
 	out->Printf( "#ifndef M_PI\n#define M_PI 3.14159265358979323846\n#endif\n" );
 	out->Printf( "#ifndef M_PI2\n#define M_PI2 6.28318530717958647692\n#endif\n" );
+	out->Printf( "#ifndef round\n#define round( x ) floor( (x) + 0.5 )\n#endif\n" );
 	if( GL_Support( R_EXT_GPU_SHADER4 ))
 	{
 		out->Printf( "#extension GL_EXT_gpu_shader4 : require\n" ); // support bitwise ops

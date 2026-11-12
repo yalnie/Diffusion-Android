@@ -62,6 +62,7 @@ extensions.configure<ApplicationExtension> {
 	sourceSets {
 		getByName("main") {
 			assets.directories.add("../../3rdparty/extras/xash-extras")
+			assets.directories.add(layout.buildDirectory.dir("generated/glslAssets").get().asFile.path)
 		}
 	}
 
@@ -123,8 +124,19 @@ tasks.register("fetchXashExtras") {
 	}
 }
 
+val syncGlslAssets = tasks.register<Sync>("syncGlslAssets") {
+	from(rootProject.file("../glsl")) {
+		into("glsl")
+	}
+	from(rootProject.file("../glsl")) {
+		into("diffusion/glsl")
+	}
+	into(layout.buildDirectory.dir("generated/glslAssets"))
+}
+
 tasks.named("preBuild") {
 	dependsOn("fetchXashExtras")
+	dependsOn(syncGlslAssets)
 }
 
 fun getBuildNum(): Int {

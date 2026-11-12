@@ -30,12 +30,6 @@ build_arch() {
         export AR="llvm-ar"
     fi
 
-    # patch mainui MSVC-specific extra qualification syntax error for GCC/Clang if present
-    if [ -f "3rd-party/mainui_cpp/menus/Main.cpp" ]; then
-        sed -i 's/void CMenuLinksMessageBox::_Init()/void _Init() override/g' 3rd-party/mainui_cpp/menus/Main.cpp
-        sed -i 's/void CMenuLinksMessageBox::_VidInit( void )/void _VidInit( void ) override/g' 3rd-party/mainui_cpp/menus/Main.cpp
-    fi
-
     rm -rf build .lock-waf*
 
     python3 ./waf configure -T release
