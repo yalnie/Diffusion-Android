@@ -66,4 +66,4 @@ uniform vec4 u_ScreenSizeInv;
 
 #define SMAARound(v) round(v)
 //floor((v) + 0.5)
-#define SMAASampleLevelZeroOffset(tex, coord, offset) textureLodOffset(tex, coord , 0.0 , offset)
+#define SMAASampleLevelZeroOffset(tex, coord, offset) texture2D(tex, coord + vec2(offset) * SMAA_RT_METRICS.xy)
