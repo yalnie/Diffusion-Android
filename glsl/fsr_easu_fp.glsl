@@ -44,7 +44,7 @@ void FsrEasuCon(
     );
     // Viewport pixel position to normalized image space.
     // This is used to get upper-left of 'F' tap.
-    con1 = vec4( 1, 1, 1, -1 ) / inputSizeInPixels.xyxy;
+    con1 = vec4( 1.0, 1.0, 1.0, -1.0 ) / inputSizeInPixels.xyxy;
     // Centers of gather4, first offset from upper-left of 'F'.
     //      +---+---+
     //      |   |   |
@@ -60,8 +60,8 @@ void FsrEasuCon(
     //      |   |   |
     //      +---+---+
     // These are from (0) instead of 'F'.
-    con2 = vec4( -1, 2, 1, 2 ) / inputSizeInPixels.xyxy;
-    con3 = vec4( 0, 4, 0, 0 ) / inputSizeInPixels.xyxy;
+    con2 = vec4( -1.0, 2.0, 1.0, 2.0 ) / inputSizeInPixels.xyxy;
+    con3 = vec4( 0.0, 4.0, 0.0, 0.0 ) / inputSizeInPixels.xyxy;
 }
 
 // Filtering for a given tap for the scalar.
@@ -185,7 +185,7 @@ void FsrEasuF(
     //------------------------------------------------------------------------------------------------------------------------------
     // Simplest multi-channel approximate luma possible (luma times 2, in 2 FMA/MAD).
     // Accumulate for bilinear interpolation.
-    vec2 dir = vec2( 0 );
+    vec2 dir = vec2( 0.0 );
     float len = 0.;
 
     FsrEasuSetF( dir, len, (1. - pp.x) * (1. - pp.y), bL, eL, fL, gL, jL );
@@ -226,20 +226,20 @@ void FsrEasuF(
     vec3 min4 = min( min( fC, gC ), min( jC, kC ) );
     vec3 max4 = max( max( fC, gC ), max( jC, kC ) );
     // Accumulation.
-    vec3 aC = vec3( 0 );
+    vec3 aC = vec3( 0.0 );
     float aW = 0.;
-    FsrEasuTapF( aC, aW, vec2( 0, -1 ) - pp, dir, len2, lob, clp, bC );
-    FsrEasuTapF( aC, aW, vec2( 1, -1 ) - pp, dir, len2, lob, clp, cC );
-    FsrEasuTapF( aC, aW, vec2( -1, 1 ) - pp, dir, len2, lob, clp, iC );
-    FsrEasuTapF( aC, aW, vec2( 0, 1 ) - pp, dir, len2, lob, clp, jC );
-    FsrEasuTapF( aC, aW, vec2( 0, 0 ) - pp, dir, len2, lob, clp, fC );
-    FsrEasuTapF( aC, aW, vec2( -1, 0 ) - pp, dir, len2, lob, clp, eC );
-    FsrEasuTapF( aC, aW, vec2( 1, 1 ) - pp, dir, len2, lob, clp, kC );
-    FsrEasuTapF( aC, aW, vec2( 2, 1 ) - pp, dir, len2, lob, clp, lC );
-    FsrEasuTapF( aC, aW, vec2( 2, 0 ) - pp, dir, len2, lob, clp, hC );
-    FsrEasuTapF( aC, aW, vec2( 1, 0 ) - pp, dir, len2, lob, clp, gC );
-    FsrEasuTapF( aC, aW, vec2( 1, 2 ) - pp, dir, len2, lob, clp, oC );
-    FsrEasuTapF( aC, aW, vec2( 0, 2 ) - pp, dir, len2, lob, clp, nC );
+    FsrEasuTapF( aC, aW, vec2( 0.0, -1.0 ) - pp, dir, len2, lob, clp, bC );
+    FsrEasuTapF( aC, aW, vec2( 1.0, -1.0 ) - pp, dir, len2, lob, clp, cC );
+    FsrEasuTapF( aC, aW, vec2( -1.0, 1.0 ) - pp, dir, len2, lob, clp, iC );
+    FsrEasuTapF( aC, aW, vec2( 0.0, 1.0 ) - pp, dir, len2, lob, clp, jC );
+    FsrEasuTapF( aC, aW, vec2( 0.0, 0.0 ) - pp, dir, len2, lob, clp, fC );
+    FsrEasuTapF( aC, aW, vec2( -1.0, 0.0 ) - pp, dir, len2, lob, clp, eC );
+    FsrEasuTapF( aC, aW, vec2( 1.0, 1.0 ) - pp, dir, len2, lob, clp, kC );
+    FsrEasuTapF( aC, aW, vec2( 2.0, 1.0 ) - pp, dir, len2, lob, clp, lC );
+    FsrEasuTapF( aC, aW, vec2( 2.0, 0.0 ) - pp, dir, len2, lob, clp, hC );
+    FsrEasuTapF( aC, aW, vec2( 1.0, 0.0 ) - pp, dir, len2, lob, clp, gC );
+    FsrEasuTapF( aC, aW, vec2( 1.0, 2.0 ) - pp, dir, len2, lob, clp, oC );
+    FsrEasuTapF( aC, aW, vec2( 0.0, 2.0 ) - pp, dir, len2, lob, clp, nC );
     //------------------------------------------------------------------------------------------------------------------------------
     // Normalize and dering.
     pix = min( max4, max( min4, aC / aW ) );

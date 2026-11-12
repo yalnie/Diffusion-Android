@@ -15,19 +15,12 @@ uniform vec4 u_Glitch;
 
 #define SS(a, b, x) (smoothstep(a, b, x) * smoothstep(b, a, x))
 
-#define UI0 1597334673U
-#define UI1 3812015801U
-#define UI11 2798796415U
-#define UI2 uvec2(UI0, UI1)
-#define UI3 uvec3(UI0, UI1, UI11)
-const float UIF = (1.0 / float(0xffffffffU));
-
-// Hash by David_Hoskins
+// Hash by David_Hoskins (portable float-based)
 vec3 hash33(vec3 p)
 {
-	uvec3 q = uvec3(ivec3(p)) * UI3;
-	q = (q.x ^ q.y ^ q.z)*UI3;
-	return -1. + 2. * vec3(q) * UIF;
+	p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+	p += dot(p, p.yxz + 33.33);
+	return -1.0 + 2.0 * fract((p.xxy + p.yxx) * p.zyx);
 }
 
 // Gradient noise by iq
@@ -94,15 +87,15 @@ void main( void )
     ++displayNoise;
     distortion += smoothstep(.999, 1., sin((uv.y + t * 1.6) * 2.)) * .02;
     distortion -= smoothstep(.999, 1., sin((uv.y + t) * 2.)) * .02;
-    st = uv + vec2(distortion, 0.);
+    st = uv + vec2(distortion, 0.0);
     // chromatic aberration
-    col.r += textureLod(u_ColorMap, st + eps + distortion, 0.).r;
-    col.g += textureLod(u_ColorMap, st, 0.).g;
-    col.b += textureLod(u_ColorMap, st - eps - distortion, 0.).b;
+    col.r += texture2D(u_ColorMap, st + eps + distortion).r;
+    col.g += texture2D(u_ColorMap, st).g;
+    col.b += texture2D(u_ColorMap, st - eps - distortion).b;
     
     // white noise + scanlines
     displayNoise = clamp(displayNoise, 0.0, 1.0) * 0.5;
-    col += (.15 + .65 * glitchAmount) * (hash33(vec3(gl_FragCoord.xy, mod(float(200), 1000.))).r) * displayNoise;
+    col += (.15 + .65 * glitchAmount) * (hash33(vec3(gl_FragCoord.xy, mod(200.0, 1000.0))).r) * displayNoise;
     col -= (.25 + .75 * glitchAmount) * (sin(4. * t + uv.y * u_ScreenSizeInv.x * 1.75)) * displayNoise;
 
 	float outAmount = u_GlitchAmount; // visibility controlled here

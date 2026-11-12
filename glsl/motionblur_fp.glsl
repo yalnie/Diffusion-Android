@@ -17,14 +17,14 @@ void main( void )
 
 	vec4 accum = texture2D( u_ColorMap, tc );
 
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 1 ) * (1.0 - 1.0 / 8.0);
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 2 ) * (1.0 - 2.0 / 8.0);
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 3 ) * (1.0 - 3.0 / 8.0);
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 4 ) * (1.0 - 4.0 / 8.0);
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 5 ) * (1.0 - 5.0 / 8.0);
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 6 ) * (1.0 - 6.0 / 8.0);
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 7 ) * (1.0 - 7.0 / 8.0);
-	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 8 ) * (1.0 - 8.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 1.0 ) * (1.0 - 1.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 2.0 ) * (1.0 - 2.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 3.0 ) * (1.0 - 3.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 4.0 ) * (1.0 - 4.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 5.0 ) * (1.0 - 5.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 6.0 ) * (1.0 - 6.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 7.0 ) * (1.0 - 7.0 / 8.0);
+	accum += texture2D( u_ColorMap, tc + Vec.xy * Multiplier * 8.0 ) * (1.0 - 8.0 / 8.0);
 	accum /= 8.0;
 	
  	vec3 cScreen = texture2D( u_ColorMap, var_TexCoord ).rgb;

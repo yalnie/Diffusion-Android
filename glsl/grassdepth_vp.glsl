@@ -50,7 +50,7 @@ void main( void )
 	vec3 dir = worldpos.xyz - u_ViewOrigin;
 	// length 2D - works better to have similar results when standing or crouching
 	float dist_to_bush = sqrt( dir.x * dir.x + dir.y * dir.y );
-	if( dist_to_bush <= 50 )
+	if( dist_to_bush <= 50.0 )
 	{
 		vec3 angles = VectorAngles( worldpos.xyz - u_ViewOrigin );
 		vec3 forward = ForwardFromAngles( angles );

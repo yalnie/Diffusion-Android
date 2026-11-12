@@ -37,11 +37,11 @@ vec3 FsrRcasF(
 	//  d e f
 	//    h
 	vec2 sp = vec2( ip );
-	vec3 b = FsrRcasLoadF( sp + vec2( 0, -1 ) ).rgb;
-	vec3 d = FsrRcasLoadF( sp + vec2( -1, 0 ) ).rgb;
+	vec3 b = FsrRcasLoadF( sp + vec2( 0.0, -1.0 ) ).rgb;
+	vec3 d = FsrRcasLoadF( sp + vec2( -1.0, 0.0 ) ).rgb;
 	vec3 e = FsrRcasLoadF( sp ).rgb;
-	vec3 f = FsrRcasLoadF( sp + vec2( 1, 0 ) ).rgb;
-	vec3 h = FsrRcasLoadF( sp + vec2( 0, 1 ) ).rgb;
+	vec3 f = FsrRcasLoadF( sp + vec2( 1.0, 0.0 ) ).rgb;
+	vec3 h = FsrRcasLoadF( sp + vec2( 0.0, 1.0 ) ).rgb;
 	// Luma times 2.
 	float bL = b.g + .5 * (b.b + b.r);
 	float dL = d.g + .5 * (d.b + d.r);

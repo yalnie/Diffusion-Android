@@ -24,7 +24,7 @@ varying vec2		var_TexCoord;
 float GetLogLuminance( vec3 color )
 {
 	float lum = GetLuminance( color );
-	return lum / ( 1 + lum );
+	return lum / ( 1.0 + lum );
 }
 
 void main()
@@ -35,8 +35,8 @@ void main()
 	float weight = 1.05 - 0.2 * length( var_TexCoord - vec2( 0.5, 0.5 ));
 
 	samples[0] = GetLogLuminance( weight * sourceColor );
-	samples[1] = GetLogLuminance( weight * texture2D( u_ScreenMap, var_TexCoord + vec2( pixelOffset.x, 0 )).xyz );
-	samples[2] = GetLogLuminance( weight * texture2D( u_ScreenMap, var_TexCoord + vec2( 0, pixelOffset.y )).xyz );
+	samples[1] = GetLogLuminance( weight * texture2D( u_ScreenMap, var_TexCoord + vec2( pixelOffset.x, 0.0 )).xyz );
+	samples[2] = GetLogLuminance( weight * texture2D( u_ScreenMap, var_TexCoord + vec2( 0.0, pixelOffset.y )).xyz );
 	samples[3] = GetLogLuminance( weight * texture2D( u_ScreenMap, var_TexCoord + pixelOffset ).xyz );
 
 	float luminance = ( samples[0] + samples[1] + samples[2] + samples[3] ) / 4.0;

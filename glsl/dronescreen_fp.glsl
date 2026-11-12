@@ -24,7 +24,7 @@ float rand(vec2 co)
 
 float sample_noise(vec2 fragCoord)
 {
-	vec2 uv = mod(gl_FragCoord.xy + vec2(0, 100. * u_RealTime), u_ScreenSize.xy);
+	vec2 uv = mod(gl_FragCoord.xy + vec2(0.0, 100. * u_RealTime), u_ScreenSize.xy);
 	float value = texture2D(u_NormalMap, uv / u_ScreenSize.xy).r;
 	return pow(value, 7.); // sharper ramp
 }
@@ -57,7 +57,7 @@ void main( void )
     float ival = u_ScreenSize.y / 4.;
     float r = rand(vec2(u_RealTime, gl_FragCoord.y));
     // dirty hack to avoid conditional
-    float on = floor(float(int(gl_FragCoord.y + (u_RealTime * r * 1000.)) % int(ival + (line_intensity * u_OutAmount * 0.5))) / ival);
+    float on = floor(mod(gl_FragCoord.y + (u_RealTime * r * 1000.0), ival + (line_intensity * u_OutAmount * 0.5)) / ival);
     float wh = sample_noise(gl_FragCoord.xy) * on;
     color = vec4(min(1., color.r + wh), 
                  min(1., color.g + wh),

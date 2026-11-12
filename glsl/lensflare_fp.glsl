@@ -79,16 +79,16 @@ void main( void )
 	// this calls the function which adds three circle types every time through the loop based on parameters I
 	// got by trying things out. rnd i*2000. and rnd i*20 are just to help randomize things more
 	color += circle( uv, 1.41, circColor, -0.3, mm, 1.0, 1.0, 0.0, 1.0 );
-	color += circle( uv, rnd2000, circColor + 1, rnd20, mm, 0.0, 0.0, 0.0, 1.0 );
-	color += circle( uv, rnd4000, circColor + 2, rnd40, mm, 0.0, 0.0, 1.0, 1.0 );
-	color += circle( uv, rnd6000, circColor + 3, rnd60, mm, 0.0, 0.0, 0.0, 1.0 );
-	color += circle( uv, rnd8000, circColor + 4, rnd80, mm, 0.0, 0.0, 1.0, 1.0 );
-	color += circle( uv, rnd10000, circColor + 5, rnd100, mm, 0.0, 0.0, 0.0, 1.0 );
-	color += circle( uv, rnd12000, circColor + 6, rnd120, mm, 0.0, 0.0, 1.0, 1.0 );
-	color += circle( uv, rnd14000, circColor + 7, rnd140, mm, 0.0, 0.0, 0.0, 1.0 );
-	color += circle( uv, rnd16000, circColor + 8, rnd160, mm, 0.0, 0.0, 1.0, 1.0 );
-	color += circle( uv, rnd18000, circColor + 9, rnd180, mm, 0.0, 0.0, 0.0, 1.0 );
-	color += circle( uv, rnd20000, circColor + 10, rnd200, mm, 0.0, 0.0, 1.0, 1.0 );
+	color += circle( uv, rnd2000, circColor + 1.0, rnd20, mm, 0.0, 0.0, 0.0, 1.0 );
+	color += circle( uv, rnd4000, circColor + 2.0, rnd40, mm, 0.0, 0.0, 1.0, 1.0 );
+	color += circle( uv, rnd6000, circColor + 3.0, rnd60, mm, 0.0, 0.0, 0.0, 1.0 );
+	color += circle( uv, rnd8000, circColor + 4.0, rnd80, mm, 0.0, 0.0, 1.0, 1.0 );
+	color += circle( uv, rnd10000, circColor + 5.0, rnd100, mm, 0.0, 0.0, 0.0, 1.0 );
+	color += circle( uv, rnd12000, circColor + 6.0, rnd120, mm, 0.0, 0.0, 1.0, 1.0 );
+	color += circle( uv, rnd14000, circColor + 7.0, rnd140, mm, 0.0, 0.0, 0.0, 1.0 );
+	color += circle( uv, rnd16000, circColor + 8.0, rnd160, mm, 0.0, 0.0, 1.0, 1.0 );
+	color += circle( uv, rnd18000, circColor + 9.0, rnd180, mm, 0.0, 0.0, 0.0, 1.0 );
+	color += circle( uv, rnd20000, circColor + 10.0, rnd200, mm, 0.0, 0.0, 1.0, 1.0 );
 
 	// multiply by the exponetial e^x ? of 1.0-length which kind of masks the brightness more so that
 	// there is a sharper roll of of the light decay from the sun. 

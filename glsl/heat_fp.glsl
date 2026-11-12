@@ -30,8 +30,8 @@ float noise(vec2 n)
 void main( void )
 {
 	float fSampledDepth = texture2D( u_DepthMap, var_TexCoord ).r;
-	fSampledDepth = linearizeDepth( 4096, fSampledDepth );
-	fSampledDepth = RemapVal( fSampledDepth, vec4( Z_NEAR, 4096, 0.0, 1.0 ) );
+	fSampledDepth = linearizeDepth( 4096.0, fSampledDepth );
+	fSampledDepth = RemapVal( fSampledDepth, vec4( Z_NEAR, 4096.0, 0.0, 1.0 ) );
 
 	if( fSampledDepth <= 0.5 )
 		discard;
@@ -43,7 +43,7 @@ void main( void )
 
 	p_d.y -= u_RealTime * 0.025 * ( 1.0 / fSampledDepth );
 
-	vec4 dst_map_val = vec4( noise(p_d * vec2(50)) * 0.25 * u_Scale );
+	vec4 dst_map_val = vec4( noise(p_d * vec2(50.0)) * 0.25 * u_Scale );
 
 	dst_offset = dst_map_val.xy * 0.02;
 
