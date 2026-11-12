@@ -89,7 +89,7 @@ void main( void )
 	accum += texture2D( u_ColorMap, sunVec.xy * 7.00 + tc ) * 0.12500;
 	accum += texture2D( u_ColorMap, sunVec.xy * 7.25 + tc ) * 0.09375;
 	accum += texture2D( u_ColorMap, sunVec.xy * 7.50 + tc ) * 0.06250;
-	accum /= 28;
+	accum /= 28.0;
 
  	accum *= 2.0 * vec4( sunDist, sunDist, sunDist, 1.0 );
 	

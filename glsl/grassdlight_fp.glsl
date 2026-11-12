@@ -71,7 +71,7 @@ void main( void )
 	
 	// spot attenuation
 	float spotDot = dot( normalize( u_LightDir.xyz ), L );
-	float fov = ( u_LightDir.w * 0.25 * ( M_PI / 180 ));
+	float fov = ( u_LightDir.w * 0.25 * ( M_PI / 180.0 ));
 	float spotCos = cos( fov + fov );
 	if( spotDot < spotCos ) discard;
 
