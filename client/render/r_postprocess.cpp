@@ -187,13 +187,13 @@ static void InitSMAA( void )
 
 	if( !SMAA_AlbedoTex )
 	{
-		SMAA_AlbedoTex = CREATE_TEXTURE( "*SMAA_AlbedoTex", w, h, NULL, 0 );
+		SMAA_AlbedoTex = CREATE_TEXTURE( "*SMAA_AlbedoTex", w, h, NULL, TF_SCREEN );
 		GL_Bind( GL_TEXTURE0, SMAA_AlbedoTex );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		pglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_FLOAT, 0 );
+		pglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
 		GL_Bind( GL_TEXTURE0, 0 );
 	}
 
@@ -205,13 +205,13 @@ static void InitSMAA( void )
 
 	if( !SMAA_EdgeTex )
 	{
-		SMAA_EdgeTex = CREATE_TEXTURE( "*SMAA_EdgeTex", w, h, NULL, 0 );
+		SMAA_EdgeTex = CREATE_TEXTURE( "*SMAA_EdgeTex", w, h, NULL, TF_SCREEN );
 		GL_Bind( GL_TEXTURE0, SMAA_EdgeTex );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		pglTexImage2D( GL_TEXTURE_2D, 0, GL_RG8, w, h, 0, GL_RGBA, GL_FLOAT, 0 );
+		pglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
 		GL_Bind( GL_TEXTURE0, 0 );
 	}
 
@@ -223,13 +223,13 @@ static void InitSMAA( void )
 
 	if( !SMAA_BlendTex )
 	{
-		SMAA_BlendTex = CREATE_TEXTURE( "*SMAA_BlendTex", w, h, NULL, 0 );
+		SMAA_BlendTex = CREATE_TEXTURE( "*SMAA_BlendTex", w, h, NULL, TF_SCREEN );
 		GL_Bind( GL_TEXTURE0, SMAA_BlendTex );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		pglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_FLOAT, 0 );
+		pglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
 		GL_Bind( GL_TEXTURE0, 0 );
 	}
 
@@ -1314,6 +1314,15 @@ void FSR( void )
 void SMAA( void )
 {
 	if( gl_smaa->value <= 0 )
+		return;
+
+	if( !CheckShader( glsl.SMAAEdgeDetect ) || !CheckShader( glsl.SMAABlendWeight ) || !CheckShader( glsl.SMAANeighborBlend ) )
+		return;
+
+	if( !SMAA_AlbedoTex )
+		InitSMAA();
+
+	if( !SMAA_AlbedoTex || !SMAA_EdgeTex || !SMAA_BlendTex || !SMAA_AreaTex || !SMAA_SearchTex )
 		return;
 
 	const int w = RENDER_GET_PARM( PARM_SCREEN_WIDTH, 0 );
