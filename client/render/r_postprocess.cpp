@@ -51,7 +51,7 @@ static const float fAOScale = 0.5f;
 static void InitAutoExposure(void)
 {
 	// init average luminance
-	const int mipmap_count = 1 + floor( log2( Q_max( glState.width, glState.height ) ) );
+	const int mipmap_count = Q_min( 1 + (int)floor( log2( Q_max( glState.width, glState.height ) ) ), 16 );
 
 	if( tr.avg_luminance_texture )
 	{
@@ -63,8 +63,20 @@ static void InitAutoExposure(void)
 		tr.avg_luminance_texture = CREATE_TEXTURE( "*avg_luminance_texture", glState.width, glState.height, NULL, TF_SCREEN );
 
 	GL_Bind( GL_TEXTURE0, tr.avg_luminance_texture );
-	pglGenerateMipmap( GL_TEXTURE_2D );
-	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	int w = glState.width;
+	int h = glState.height;
+	for( int i = 0; i < mipmap_count; i++ )
+	{
+		pglTexImage2D( GL_TEXTURE_2D, i, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+		w /= 2;
+		h /= 2;
+		w = Q_max( w, 1 );
+		h = Q_max( h, 1 );
+	}
+	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
+	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	pglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	GL_Bind( GL_TEXTURE0, 0 );
 
 	// mips
@@ -245,7 +257,8 @@ static void InitBloom( void )
 	GL_Bind( GL_TEXTURE0, tr.screen_fbo_texture_color );
 	int w = glState.width;
 	int h = glState.height;
-	for( int i = 0; i <= 6; i++ )
+	const int bloom_mip_count = 1 + (int)floor( log2( Q_max( glState.width, glState.height ) ) );
+	for( int i = 0; i < bloom_mip_count; i++ )
 	{
 		pglTexImage2D( GL_TEXTURE_2D, i, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
 		w = Q_max( 1, w / 2 );
@@ -1130,7 +1143,7 @@ int RenderExposureStorage(void)
 	static int Index = 0;
 	const int sourceIndex = Index % 2;
 	const int destIndex = (Index + 1) % 2;
-	const int mipmap_count = 1 + floor( log2( Q_max( glState.width, glState.height ) ) );
+	const int mipmap_count = Q_min( 1 + (int)floor( log2( Q_max( glState.width, glState.height ) ) ), 16 );
 
 	GL_BindShader( glsl.GenExposure );
 	ASSERT( RI->currentshader != NULL );
@@ -1166,12 +1179,16 @@ void ToneMap(void)
 	if( R_FullBright() || r_lightmap->value )
 		return;
 
-	const int mipmap_count = 1 + floor( log2( Q_max( glState.width, glState.height ) ) );
+	if( !tr.avg_luminance_texture )
+		InitAutoExposure();
 
-	// render luminance to first mip
-	GL_Bind( GL_TEXTURE0, tr.avg_luminance_texture );
+	const int mipmap_count = Q_min( 1 + (int)floor( log2( Q_max( glState.width, glState.height ) ) ), 16 );
+
+	// capture current screen into tr.screen_color to extract luminance
+	GL_Bind( GL_TEXTURE0, tr.screen_color );
 	pglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, 0, 0, glState.width, glState.height );
 
+	// render luminance to first mip (u_ScreenMap on unit 0 is tr.screen_color)
 	GL_BindShader( glsl.GenLuminance );
 	ASSERT( RI->currentshader != NULL );
 
@@ -1190,6 +1207,8 @@ void ToneMap(void)
 	pglUniform2fARB( RI->currentshader->u_ScreenSizeInv, 1.0f / (float)(glState.width), 1.0f / (float)(glState.height) );
 	pglUniform4fARB( RI->currentshader->u_TexCoordClamp, 0.0f, 0.0f, 1.0f, 1.0f );
 	pglUniform1fARB( RI->currentshader->u_BloomFirstPass, 0.0f );
+
+	GL_Bind( GL_TEXTURE0, tr.avg_luminance_texture );
 
 	for( int i = 1; i < mipmap_count; i++ )
 	{
@@ -1211,10 +1230,6 @@ void ToneMap(void)
 	GL_CleanUpTextureUnits( 0 );
 	pglViewport( 0, 0, glState.width, glState.height );
 	pglBindFramebuffer( GL_FRAMEBUFFER_EXT, 0 );
-
-	// capture screen
-	GL_Bind( GL_TEXTURE0, tr.screen_color );
-	pglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, 0, 0, glState.width, glState.height );
 
 	const int ExposureTexture = RenderExposureStorage();
 
