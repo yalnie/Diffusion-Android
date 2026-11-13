@@ -343,6 +343,14 @@ bool CStudioModelRenderer::StudioLoadTBN( void )
 
 	if( !aMemFile ) return false;
 
+	if( length < (int)sizeof( dmodeltbn_t ) )
+	{
+		ConPrintf( "%s is truncated (%i bytes, min %i)\n", szFilename, length, (int)sizeof( dmodeltbn_t ) );
+		gEngfuncs.COM_FreeFile( aMemFile );
+		m_tbnverts = NULL;
+		return false;
+	}
+
 	// TBN is a footprint
 	m_tbnverts = (dmodeltbn_t *)aMemFile;
 
@@ -368,6 +376,16 @@ bool CStudioModelRenderer::StudioLoadTBN( void )
 	{
 		//	ALERT( at_console, "%s was changed, TBN cache will be updated\n", szFilename );
 		ConPrintf( "%s was changed, TBN cache will be updated\n", szFilename );
+		gEngfuncs.COM_FreeFile( aMemFile );
+		m_tbnverts = NULL;
+		return false;
+	}
+
+	long expected_size = sizeof( dmodeltbn_t ) + (m_tbnverts->numverts - 1) * sizeof( dvertmatrix_t );
+	if( m_tbnverts->numverts <= 0 || length < expected_size )
+	{
+		ConPrintf( "%s has invalid vertex count or truncated (%i bytes, expected %ld, verts %i)\n",
+			szFilename, length, expected_size, m_tbnverts->numverts );
 		gEngfuncs.COM_FreeFile( aMemFile );
 		m_tbnverts = NULL;
 		return false;
@@ -1289,25 +1307,44 @@ void CStudioModelRenderer::MeshCreateBuffer( vbomesh_t *pOut, const mstudiomesh_
 
 			if( m_iTBNState == TBNSTATE_LOADING && m_tbnverts != NULL )
 			{
-				// loading TBN from cache
-				m_arrayxvert[m_nNumArrayVerts].tangent = m_tbnverts->verts[m_nNumTBNVerts].tangent;
-				m_arrayxvert[m_nNumArrayVerts].binormal = m_tbnverts->verts[m_nNumTBNVerts].binormal;
-				m_arrayxvert[m_nNumArrayVerts].normal = m_tbnverts->verts[m_nNumTBNVerts].normal;
-				m_nNumTBNVerts++;
+				if( m_nNumTBNVerts < m_tbnverts->numverts )
+				{
+					// loading TBN from cache
+					m_arrayxvert[m_nNumArrayVerts].tangent = m_tbnverts->verts[m_nNumTBNVerts].tangent;
+					m_arrayxvert[m_nNumArrayVerts].binormal = m_tbnverts->verts[m_nNumTBNVerts].binormal;
+					m_arrayxvert[m_nNumArrayVerts].normal = m_tbnverts->verts[m_nNumTBNVerts].normal;
+					m_nNumTBNVerts++;
+				}
+				else
+				{
+					m_arrayxvert[m_nNumArrayVerts].tangent = g_vecZero;
+					m_arrayxvert[m_nNumArrayVerts].binormal = g_vecZero;
+				}
 			}
 
 			if( dml != NULL && dml->numverts > 0 )
 			{
-				dvertlight_t *vl = &dml->verts[m_nNumLightVerts++];
-
-				// pack lightvalues into single float
-				for( int map = 0; map < MAXLIGHTMAPS; map++ )
+				if( m_nNumLightVerts < dml->numverts )
 				{
-					//	byte r = vl->light[map][0], g = vl->light[map][1], b = vl->light[map][2];
-					//	float packDirect = (float)((double)((r << 16) | (g << 8) | b) / (double)(1 << 24));
-					//	arrayxvert[m_nNumArrayVerts].light[map] = packDirect;
-					m_arrayxvert[m_nNumArrayVerts].light[map] = PackColor( vl->light[map] );
-					m_arrayxvert[m_nNumArrayVerts].deluxe[map] = PackColor( vl->deluxe[map] );
+					dvertlight_t *vl = &dml->verts[m_nNumLightVerts++];
+
+					// pack lightvalues into single float
+					for( int map = 0; map < MAXLIGHTMAPS; map++ )
+					{
+						//	byte r = vl->light[map][0], g = vl->light[map][1], b = vl->light[map][2];
+						//	float packDirect = (float)((double)((r << 16) | (g << 8) | b) / (double)(1 << 24));
+						//	arrayxvert[m_nNumArrayVerts].light[map] = packDirect;
+						m_arrayxvert[m_nNumArrayVerts].light[map] = PackColor( vl->light[map] );
+						m_arrayxvert[m_nNumArrayVerts].deluxe[map] = PackColor( vl->deluxe[map] );
+					}
+				}
+				else
+				{
+					for( int map = 0; map < MAXLIGHTMAPS; map++ )
+					{
+						m_arrayxvert[m_nNumArrayVerts].light[map] = 0.0f;
+						m_arrayxvert[m_nNumArrayVerts].deluxe[map] = 0.0f;
+					}
 				}
 			}
 
@@ -1641,7 +1678,56 @@ mvbocache_t *CStudioModelRenderer::CreateMeshCache( dmodellight_t *dml )
 	// only models with bump-mapping are required to build TBN matrices
 	if( !cl_notbn->value )
 	{
-		if( !StudioLoadTBN() )
+		if( StudioLoadTBN() )
+		{
+			// validate that the loaded cache has matching submodels and expected vertex offsets
+			bool cache_valid = true;
+			int expected_offset = 0;
+
+			for( i = 0; i < num_submodels; i++ )
+			{
+				psubmodel = submodel[i].pmodel;
+				int offset = (byte *)psubmodel - (byte *)m_pStudioHeader;
+
+				for( j = 0; j < MAXSTUDIOMODELS; j++ )
+				{
+					if( m_tbnverts->submodels[j].submodel_offset == offset )
+						break;
+				}
+
+				if( j == MAXSTUDIOMODELS || m_tbnverts->submodels[j].vertex_offset != expected_offset )
+				{
+					cache_valid = false;
+					break;
+				}
+
+				for( int m = 0; m < psubmodel->nummesh; m++ )
+				{
+					mstudiomesh_t *pMesh = (mstudiomesh_t *)((byte *)m_pStudioHeader + psubmodel->meshindex) + m;
+					short *ptricmds = (short *)((byte *)m_pStudioHeader + pMesh->triindex);
+					int cmd;
+					while( (cmd = *(ptricmds++)) != 0 )
+					{
+						if( cmd < 0 ) cmd = -cmd;
+						expected_offset += cmd;
+						ptricmds += cmd * 4;
+					}
+				}
+			}
+
+			if( cache_valid && m_tbnverts->numverts != expected_offset )
+				cache_valid = false;
+
+			if( !cache_valid )
+			{
+				ALERT( at_warning, "%s: cached TBN is invalid or mismatched, regenerating...\n", m_pRenderModel->name );
+				gEngfuncs.COM_FreeFile( m_tbnverts );
+				m_tbnverts = NULL;
+				m_iTBNState = TBNSTATE_INACTIVE;
+			}
+		}
+
+		if( m_iTBNState != TBNSTATE_LOADING )
 		{
 			int	max_model_verts = 0;
 
@@ -1708,8 +1794,15 @@ mvbocache_t *CStudioModelRenderer::CreateMeshCache( dmodellight_t *dml )
 					break;
 			}
 
-			ASSERT( j != MAXSTUDIOMODELS );
-			ASSERT( m_nNumLightVerts == dml->submodels[j].vertex_offset );
+			if( j == MAXSTUDIOMODELS )
+			{
+				ALERT( at_warning, "%s: dml light cache missing submodel %s (offset %d)\n", m_pRenderModel->name, psubmodel->name, offset );
+			}
+			else if( m_nNumLightVerts != dml->submodels[j].vertex_offset )
+			{
+				ALERT( at_warning, "%s: dml light cache vertex offset mismatch for %s (%d != %d)\n",
+					m_pRenderModel->name, psubmodel->name, m_nNumLightVerts, dml->submodels[j].vertex_offset );
+			}
 		}
 
 		// sanity check for TBN matrix
@@ -1723,14 +1816,19 @@ mvbocache_t *CStudioModelRenderer::CreateMeshCache( dmodellight_t *dml )
 					break;
 			}
 
-			ASSERT( j != MAXSTUDIOMODELS );
-
 			if( j != MAXSTUDIOMODELS )
 			{
 				if( m_iTBNState == TBNSTATE_GENERATE )
 					m_tbnverts->submodels[j].vertex_offset = m_nNumTBNVerts;
-				else
-					ASSERT( m_nNumTBNVerts == m_tbnverts->submodels[j].vertex_offset );
+				else if( m_nNumTBNVerts != m_tbnverts->submodels[j].vertex_offset )
+				{
+					ALERT( at_warning, "%s: TBN vertex offset mismatch for %s (%d != %d)\n",
+						m_pRenderModel->name, psubmodel->name, m_nNumTBNVerts, m_tbnverts->submodels[j].vertex_offset );
+				}
+			}
+			else
+			{
+				ALERT( at_warning, "%s: TBN submodel offset %d not found\n", m_pRenderModel->name, offset );
 			}
 		}
 
