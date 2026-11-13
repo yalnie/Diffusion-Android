@@ -36,6 +36,13 @@ GNU General Public License for more details.
 #include "screen.h"
 #endif
 
+#if defined( GL_ES ) && !defined( GL_EXT_texture_array )
+#ifndef sampler2DArray
+#define sampler2DArray sampler2D
+#define texture2DArray( s, c ) texture2D( (s), (c).xy )
+#endif
+#endif
+
 #if defined( BMODEL_MULTI_LAYERS )
 uniform sampler2DArray	u_ColorMap;
 uniform sampler2DArray	u_NormalMap;
@@ -195,13 +202,21 @@ void main( void )
 	float InitGlossScale[TERRAIN_NUM_LAYERS];
 	float InitGlossSmoothness[TERRAIN_NUM_LAYERS];
 	float InitEmbossScale[TERRAIN_NUM_LAYERS];
-	#if defined( BMODEL_EMBOSS )
-	InitEmbossScale = u_EmbossScale;
-	#endif
-	#if defined( BMODEL_SPECULAR )
-	InitGlossScale = u_GlossScale; 
-	InitGlossSmoothness = u_GlossSmoothness;
-	#endif
+	for( int i = 0; i < TERRAIN_NUM_LAYERS; ++i )
+	{
+		#if defined( BMODEL_EMBOSS )
+		InitEmbossScale[i] = u_EmbossScale[i];
+		#else
+		InitEmbossScale[i] = 0.0;
+		#endif
+		#if defined( BMODEL_SPECULAR )
+		InitGlossScale[i] = u_GlossScale[i];
+		InitGlossSmoothness[i] = u_GlossSmoothness[i];
+		#else
+		InitGlossScale[i] = 0.0;
+		InitGlossSmoothness[i] = 0.0;
+		#endif
+	}
 	vec3 MaterialDefines = TerrainCalcMaterialDefines( InitGlossScale, InitGlossSmoothness, InitEmbossScale, mask0, mask1, mask2, mask3 );
 	#if defined( BMODEL_SPECULAR )
 	GlossScale = MaterialDefines.x; 
@@ -322,7 +337,7 @@ void main( void )
 
 #if defined( BMODEL_INTERIOR )
 	if( diffuse.a < 0.98 )
-		diffuse = InteriorMapping( diffuse, var_TexDiffuse, N, 0, var_ViewVec, var_Position ); // u_realtime is currently not used
+		diffuse = InteriorMapping( diffuse, var_TexDiffuse, N, 0.0, var_ViewVec, var_Position ); // u_realtime is currently not used
 #endif
 
 //------------------------------------------------------------------------------------------------------
@@ -331,7 +346,7 @@ void main( void )
 	
 	float WaterBorderFactor = 1.0, WaterAbsorbFactor = 1.0, WaterRefractFactor = 1.0, WaterAbsorbScale = 1.0;
 	float RefractScale = 0.25; 
-	const float u_zFar = -4096; // for consistency
+	const float u_zFar = -4096.0; // for consistency
 
 	// alpha works well between 67-135~... so I need to remap 0-255 to 67-135~. how to fix this?
 	alpha = RemapVal( alpha, vec4( 0.0, 1.0, 0.263, 0.500 ) );

@@ -26,7 +26,7 @@ vec4 InteriorMapping( vec4 diffuse, vec2 TexDiffuse, vec3 N, float Time, vec3 Vi
 
 	vec2 blockNums = floor(TexDiffuse * gridSize);
 
-	const float staticSeed = 500; // room positions
+	const float staticSeed = 500.0; // room positions
 	const float randomSeed = staticSeed;//don't change          floor(Time * SEED_CHANGING_FREQ); // lighting change
 
 	float staticVal = randomFunction2(staticSeed, blockNums);
@@ -67,7 +67,7 @@ vec4 InteriorMapping( vec4 diffuse, vec2 TexDiffuse, vec3 N, float Time, vec3 Vi
     interiorUV = interiorUV * 0.5 + vec2(0.5);
     interiorUV *= ATLAS_SCALE;    
     
-    float rnd = randomFunction2( 1, blockNums );
+    float rnd = randomFunction2( 1.0, blockNums );
     interiorUV.x += ATLAS_SCALE.x * float(rnd > 0.5);
     interiorUV.y += ATLAS_SCALE.y * floor(rnd * 8.0);
 
@@ -83,81 +83,81 @@ vec4 InteriorMapping( vec4 diffuse, vec2 TexDiffuse, vec3 N, float Time, vec3 Vi
 	// randomize room lighting
 	if( randomVal <= 0.2 )
 	{
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior0.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior1.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior2.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior3.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior4.rgb *= 0.2;
 	}
 	else if( randomVal <= 0.4 )
 	{
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior0.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior1.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior2.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior3.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior4.rgb *= 0.2;
 	}
 	else if( randomVal <= 0.6 )
 	{
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior0.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior1.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior2.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior3.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior4.rgb *= 0.2;
 	}
 	else if( randomVal <= 0.8 )
 	{
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior0.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior1.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior2.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior3.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior4.rgb *= 0.2;
 	}
 	else
 	{
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior0.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior1.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior2.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior3.rgb *= 0.2;
-		if( randomFunction2( 1, vec2(randomVal,randomVal) ) >= LightChance )
+		if( randomFunction2( 1.0, vec2(randomVal,randomVal) ) >= LightChance )
 			interior4.rgb *= 0.2;
 	}
 
 	// randomize room positions
 	if (staticVal <= 0.2)
-        diffuse = diffuse * diffuse.a + interior0 * (1 - diffuse.a);
+        diffuse = diffuse * diffuse.a + interior0 * (1.0 - diffuse.a);
     else if (staticVal <= 0.4)
-        diffuse = diffuse * diffuse.a + interior1 * (1 - diffuse.a);
+        diffuse = diffuse * diffuse.a + interior1 * (1.0 - diffuse.a);
     else if (staticVal <= 0.6)
-        diffuse = diffuse * diffuse.a + interior2 * (1 - diffuse.a);
+        diffuse = diffuse * diffuse.a + interior2 * (1.0 - diffuse.a);
     else if (staticVal <= 0.8)
-        diffuse = diffuse * diffuse.a + interior3 * (1 - diffuse.a);
+        diffuse = diffuse * diffuse.a + interior3 * (1.0 - diffuse.a);
     else
-        diffuse = diffuse * diffuse.a + interior4 * (1 - diffuse.a);
+        diffuse = diffuse * diffuse.a + interior4 * (1.0 - diffuse.a);
 
 	return diffuse;
 }

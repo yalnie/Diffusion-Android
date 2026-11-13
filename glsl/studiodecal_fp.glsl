@@ -37,7 +37,7 @@ void main( void )
 	//	float fogFactor = clamp( exp2( -gl_Fog.density * ( gl_FragCoord.z / gl_FragCoord.w )), 0.0, 1.0 );
 		float fogFactor = clamp( exp2( -u_FogParams.w * ( gl_FragCoord.z / gl_FragCoord.w )), 0.0, 1.0 );
 		diffuse.rgb = mix( u_FogParams.xyz, diffuse.rgb, fogFactor );
-		diffuse.a = mix( 0, diffuse.a, fogFactor );
+		diffuse.a = mix( 0.0, diffuse.a, fogFactor );
 	}
 
 	gl_FragColor = diffuse * var_VertexColor;

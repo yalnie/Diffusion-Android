@@ -168,7 +168,7 @@ void main( void )
 
 #if defined( STUDIO_INTERIOR )
 	if( diffuse.a < 0.98 )
-		diffuse = InteriorMapping( diffuse, var_TexDiffuse, N, 0, var_ViewVec * var_MatrixTBN, var_Position ); // u_realtime is currently not used
+		diffuse = InteriorMapping( diffuse, var_TexDiffuse, N, 0.0, var_ViewVec * var_MatrixTBN, var_Position ); // u_realtime is currently not used
 #endif
 
 #if defined( STUDIO_BUMP )

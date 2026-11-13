@@ -18,6 +18,15 @@ GNU General Public License for more details.
 
 #define SHADOW_VOGEL_DISK
 
+#if defined( GL_ES ) && !defined( GL_EXT_shadow_samplers )
+#ifndef sampler2DShadow
+#define sampler2DShadow sampler2D
+#define shadow2D( s, c ) vec4( texture2D( (s), (c).xy ).r )
+#endif
+#elif defined( GL_ES )
+#define shadow2D( s, c ) vec4( shadow2DEXT( (s), (c) ) )
+#endif
+
 uniform sampler2DShadow	u_ShadowMap;
 
 #define shadowval( center, xoff, yoff ) float( shadow2DOffset( u_ShadowMap, center, ivec2( xoff, yoff )))

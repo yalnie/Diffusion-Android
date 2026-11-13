@@ -36,6 +36,10 @@ float AlphaSharpening(in float alpha, in float cutoff)
 
 float AlphaRescaling(sampler2D tex, in vec2 texCoords, in float alpha)
 {
+#if defined( GLSL_gpu_shader4 )
     const float mipScale = 0.25;
-    return alpha * (1.0 + CalcMipLevel(tex, texCoords * textureSize(tex, 0)) * mipScale);
+    return alpha * (1.0 + CalcMipLevel(tex, texCoords * vec2(textureSize(tex, 0))) * mipScale);
+#else
+    return alpha;
+#endif
 }

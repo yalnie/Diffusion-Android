@@ -1,6 +1,13 @@
 #ifndef TEXFETCH_H
 #define TEXFETCH_H
 
+#if defined( GL_ES ) && !defined( GL_EXT_texture_array )
+#ifndef sampler2DArray
+#define sampler2DArray sampler2D
+#define texture2DArray( s, c ) texture2D( (s), (c).xy )
+#endif
+#endif
+
 #include "const.h"
 #include "mathlib.h"
 
@@ -10,13 +17,11 @@ vec4 colormap2D( sampler2D tex, const vec2 uv )
 	return vec4( ConvertSRGBToLinear( sample.rgb ), sample.a );
 }
 
-#if defined( GLSL_ALLOW_TEXTURE_ARRAY )
 vec4 colormap2DArray( sampler2DArray tex, vec2 uv, float layer )
 {
 	vec4 sample = texture2DArray( tex, vec3( uv, layer ) );
 	return vec4( ConvertSRGBToLinear( sample.rgb ), sample.a );
 }
-#endif
 
 vec3 normalmap2D( sampler2D tex, const vec2 uv )
 {
@@ -41,7 +46,6 @@ vec3 normalmap2D( sampler2D tex, const vec2 uv )
     return N;
 }
 
-#if defined( GLSL_ALLOW_TEXTURE_ARRAY )
 vec3 normalmap2DArray( sampler2DArray tex, const vec2 uv, const float layer )
 {
     vec4 normalmap = texture2DArray( tex, vec3( uv, layer ) );
@@ -64,7 +68,6 @@ vec3 normalmap2DArray( sampler2DArray tex, const vec2 uv, const float layer )
 
     return N;
 }
-#endif
 
 vec4 reflectmap2D( sampler2D tex, vec4 projTC, vec3 N, vec3 fragCoord, float refraction )
 {

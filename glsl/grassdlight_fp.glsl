@@ -123,7 +123,7 @@ void main( void )
 	{
 		float fogFactor = exp( -dist * u_FogParams.w );
 		fogFactor = clamp( fogFactor, 0.0, 1.0 );
-		atten = mix( 0, atten, fogFactor );
+		atten = mix( 0.0, atten, fogFactor );
 	}
 
 	// do modified hemisperical lighting

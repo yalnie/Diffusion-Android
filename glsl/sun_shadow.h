@@ -16,6 +16,15 @@ GNU General Public License for more details.
 #ifndef SUN_SHADOW_H
 #define SUN_SHADOW_H
 
+#if defined( GL_ES ) && !defined( GL_EXT_shadow_samplers )
+#ifndef sampler2DShadow
+#define sampler2DShadow sampler2D
+#define shadow2D( s, c ) vec4( texture2D( (s), (c).xy ).r )
+#endif
+#elif defined( GL_ES )
+#define shadow2D( s, c ) vec4( shadow2DEXT( (s), (c) ) )
+#endif
+
 uniform sampler2DShadow	u_SunShadowMap;
 uniform vec4		u_SunShadowParams;	// x = texel size, y = shadow strength, z = cascade far distance, w = fade band width
 

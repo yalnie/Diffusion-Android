@@ -16,6 +16,12 @@ GNU General Public License for more details.
 #ifndef CUBEMAP_H
 #define CUBEMAP_H
 
+#if defined( GL_ES ) && !defined( GL_EXT_shader_texture_lod )
+#ifndef textureCubeLod
+#define textureCubeLod( s, c, lod ) textureCube( (s), (c) )
+#endif
+#endif
+
 uniform samplerCube	u_CubemapBox;
 
 uniform vec3		u_Cubemap[3];

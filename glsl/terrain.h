@@ -16,13 +16,20 @@ GNU General Public License for more details.
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
+#if defined( GL_ES ) && !defined( GL_EXT_texture_array )
+#ifndef sampler2DArray
+#define sampler2DArray sampler2D
+#define texture2DArray( s, c ) texture2D( (s), (c).xy )
+#endif
+#endif
+
 #define colormap2DArray( tex, tc, layer )	texture2DArray( tex, vec3( tc, layer ))
 
 #if defined( BMODEL_MULTI_LAYERS )
 uniform sampler2DArray	u_LayerMap;
 #endif
 
-#if defined( GLSL_ALLOW_TEXTURE_ARRAY ) && defined( BMODEL_MULTI_LAYERS )
+#if defined( BMODEL_MULTI_LAYERS )
 
 void TerrainReadMask( const vec2 tc, inout vec4 mask0, inout vec4 mask1, inout vec4 mask2, inout vec4 mask3 )
 {
@@ -102,52 +109,52 @@ vec3 TerrainApplyNormal( sampler2DArray tex, vec2 tc, vec4 mask0, vec4 mask1, ve
 {
 	vec3 normal = vec3( 0.0 );
 #if TERRAIN_NUM_LAYERS >= 1
-	if( mask0.r > 0.0 ) normal += normalmap2DArray( tex, tc, 0 ) * mask0.r;
+	if( mask0.r > 0.0 ) normal += normalmap2DArray( tex, tc, 0.0 ) * mask0.r;
 #endif
 #if TERRAIN_NUM_LAYERS >= 2
-	if( mask0.g > 0.0 ) normal += normalmap2DArray( tex, tc, 1 ) * mask0.g;
+	if( mask0.g > 0.0 ) normal += normalmap2DArray( tex, tc, 1.0 ) * mask0.g;
 #endif
 #if TERRAIN_NUM_LAYERS >= 3
-	if( mask0.b > 0.0 ) normal += normalmap2DArray( tex, tc, 2 ) * mask0.b;
+	if( mask0.b > 0.0 ) normal += normalmap2DArray( tex, tc, 2.0 ) * mask0.b;
 #endif
 #if TERRAIN_NUM_LAYERS >= 4
-	if( mask0.a > 0.0 ) normal += normalmap2DArray( tex, tc, 3 ) * mask0.a;
+	if( mask0.a > 0.0 ) normal += normalmap2DArray( tex, tc, 3.0 ) * mask0.a;
 #endif
 #if TERRAIN_NUM_LAYERS >= 5
-	if( mask1.r > 0.0 ) normal += normalmap2DArray( tex, tc, 4 ) * mask1.r;
+	if( mask1.r > 0.0 ) normal += normalmap2DArray( tex, tc, 4.0 ) * mask1.r;
 #endif
 #if TERRAIN_NUM_LAYERS >= 6
-	if( mask1.g > 0.0 ) normal += normalmap2DArray( tex, tc, 5 ) * mask1.g;
+	if( mask1.g > 0.0 ) normal += normalmap2DArray( tex, tc, 5.0 ) * mask1.g;
 #endif
 #if TERRAIN_NUM_LAYERS >= 7
-	if( mask1.b > 0.0 ) normal += normalmap2DArray( tex, tc, 6 ) * mask1.b;
+	if( mask1.b > 0.0 ) normal += normalmap2DArray( tex, tc, 6.0 ) * mask1.b;
 #endif
 #if TERRAIN_NUM_LAYERS >= 8
-	if( mask1.a > 0.0 ) normal += normalmap2DArray( tex, tc, 7 ) * mask1.a;
+	if( mask1.a > 0.0 ) normal += normalmap2DArray( tex, tc, 7.0 ) * mask1.a;
 #endif
 #if TERRAIN_NUM_LAYERS >= 9
-	if( mask0.r > 0.0 ) normal += normalmap2DArray( tex, tc, 8 ) * mask2.r;
+	if( mask0.r > 0.0 ) normal += normalmap2DArray( tex, tc, 8.0 ) * mask2.r;
 #endif
 #if TERRAIN_NUM_LAYERS >= 10
-	if( mask0.g > 0.0 ) normal += normalmap2DArray( tex, tc, 9 ) * mask2.g;
+	if( mask0.g > 0.0 ) normal += normalmap2DArray( tex, tc, 9.0 ) * mask2.g;
 #endif
 #if TERRAIN_NUM_LAYERS >= 11
-	if( mask0.b > 0.0 ) normal += normalmap2DArray( tex, tc, 10 ) * mask2.b;
+	if( mask0.b > 0.0 ) normal += normalmap2DArray( tex, tc, 10.0 ) * mask2.b;
 #endif
 #if TERRAIN_NUM_LAYERS >= 12
-	if( mask0.a > 0.0 ) normal += normalmap2DArray( tex, tc, 11 ) * mask2.a;
+	if( mask0.a > 0.0 ) normal += normalmap2DArray( tex, tc, 11.0 ) * mask2.a;
 #endif
 #if TERRAIN_NUM_LAYERS >= 13
-	if( mask1.r > 0.0 ) normal += normalmap2DArray( tex, tc, 12 ) * mask3.r;
+	if( mask1.r > 0.0 ) normal += normalmap2DArray( tex, tc, 12.0 ) * mask3.r;
 #endif
 #if TERRAIN_NUM_LAYERS >= 14
-	if( mask1.g > 0.0 ) normal += normalmap2DArray( tex, tc, 13 ) * mask3.g;
+	if( mask1.g > 0.0 ) normal += normalmap2DArray( tex, tc, 13.0 ) * mask3.g;
 #endif
 #if TERRAIN_NUM_LAYERS >= 15
-	if( mask1.b > 0.0 ) normal += normalmap2DArray( tex, tc, 14 ) * mask3.b;
+	if( mask1.b > 0.0 ) normal += normalmap2DArray( tex, tc, 14.0 ) * mask3.b;
 #endif
 #if TERRAIN_NUM_LAYERS >= 16
-	if( mask1.a > 0.0 ) normal += normalmap2DArray( tex, tc, 15 ) * mask3.a;
+	if( mask1.a > 0.0 ) normal += normalmap2DArray( tex, tc, 15.0 ) * mask3.a;
 #endif
 	return normalize( normal );
 }

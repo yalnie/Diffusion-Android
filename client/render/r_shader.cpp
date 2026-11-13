@@ -99,6 +99,9 @@ static bool GL_IsSourceNewerThanCache( const char *vpname, const char *fpname, c
 	Q_snprintf( vp_path, sizeof( vp_path ), "glsl/%s_vp.glsl", vpname );
 	Q_snprintf( fp_path, sizeof( fp_path ), "glsl/%s_fp.glsl", fpname );
 
+	for( int i = 0; vp_path[i]; i++ ) vp_path[i] = tolower( vp_path[i] );
+	for( int i = 0; fp_path[i]; i++ ) fp_path[i] = tolower( fp_path[i] );
+
 	int retval = 0;
 
 	// Compare VP vs cache
@@ -224,6 +227,14 @@ static bool GL_LoadSource( const char *filename, CVirtualFS *file )
 	char *source = (char *)gEngfuncs.COM_LoadFile((char *)filename, 5, &size );
 	if( !source )
 	{
+		char lowername[256];
+		Q_strncpy( lowername, filename, sizeof( lowername ) );
+		for( int i = 0; lowername[i]; i++ )
+			lowername[i] = tolower( lowername[i] );
+		source = (char *)gEngfuncs.COM_LoadFile( lowername, 5, &size );
+	}
+	if( !source )
+	{
 		ALERT( at_error, "couldn't load %s\n", filename );
 		return false;
 	}
@@ -292,6 +303,7 @@ static bool GL_ProcessShader( const char *filename, CVirtualFS *out, bool compat
 	out->Printf( "precision highp int;\n" );
 	out->Printf( "precision highp sampler2D;\n" );
 	out->Printf( "precision highp samplerCube;\n" );
+	out->Printf( "precision highp sampler2DShadow;\n" );
 	out->Printf( "#endif\n" );
 	out->Printf( "#ifndef M_PI\n#define M_PI 3.14159265358979323846\n#endif\n" );
 	out->Printf( "#ifndef M_PI2\n#define M_PI2 6.28318530717958647692\n#endif\n" );
@@ -342,6 +354,9 @@ static void GL_LoadGPUShader( glsl_program_t *shader, const char *name, GLenum s
 		ALERT( at_error, "GL_LoadGPUShader: unknown shader type %p\n", shaderType );
 		return;
 	}
+
+	for( int i = 0; filename[i]; i++ )
+		filename[i] = tolower( filename[i] );
 
 	// load includes, add some directives
 	if( !GL_ProcessShader( filename, &source, compatible, defines ) )
@@ -3190,18 +3205,18 @@ void GL_InitGPUShaders( void )
 	GL_InitSkyBoxUniforms( shader );
 
 	// studio shadowing
-	glsl.studioDepthFill[0] = shader = GL_InitGPUShader( "StudioDepth", "StudioDepth", "generic", "#define NO_FOG\n" );
+	glsl.studioDepthFill[0] = shader = GL_InitGPUShader( "StudioDepth", "studiodepth", "generic", "#define NO_FOG\n" );
 	GL_InitStudioDepthFillUniforms( shader );
 
-	glsl.studioDepthFill[1] = shader = GL_InitGPUShader( "StudioDepth", "StudioDepth", "generic", "#define STUDIO_BONEWEIGHTING\n#define NO_FOG\n"  );
+	glsl.studioDepthFill[1] = shader = GL_InitGPUShader( "StudioDepth", "studiodepth", "generic", "#define STUDIO_BONEWEIGHTING\n#define NO_FOG\n"  );
 	GL_InitStudioDepthFillUniforms( shader );
 
 	// bmodel shadowing
-	glsl.bmodelDepthFill = shader = GL_InitGPUShader( "BrushDepth", "BmodelDepth", "generic", "#define NO_FOG\n" );
+	glsl.bmodelDepthFill = shader = GL_InitGPUShader( "BrushDepth", "bmodeldepth", "generic", "#define NO_FOG\n" );
 	GL_InitBmodelDepthFillUniforms( shader );
 
 	// grass shadowing
-	glsl.grassDepthFill = shader = GL_InitGPUShader( "GrassDepth", "GrassDepth", "generic", "#define NO_FOG\n" );
+	glsl.grassDepthFill = shader = GL_InitGPUShader( "GrassDepth", "grassdepth", "generic", "#define NO_FOG\n" );
 	GL_InitGrassSolidUniforms( shader );
 
 	// fog processing
