@@ -812,9 +812,10 @@ static void GL_InitExtensions( void )
 
 #if defined(__ANDROID__) || defined(ANDROID)
 	// Mobile GPUs (Adreno, Mali) have a hardware limit of 256 vec4 vertex uniform vectors.
-	// 48 bones require 96 vec4 vectors (48 quat + 48 pos), safely staying well below the limit.
-	// 128 bones would require 256 vectors for bones alone and crash the Adreno driver (libGLESv2_adreno.so).
-	glConfig.max_skinning_bones = bound( 32, ( Q_max( glConfig.max_vertex_uniforms - MAX_RESERVED_UNIFORMS, 0 ) / 7 ), 48 );
+	// 76 bones require 152 vec4 vectors (76 quat + 76 pos), which together with u_GammaTable[64]
+	// and ~22 other vertex uniform vectors (~238 vec4 total) stays safely below 256 while
+	// supporting full NPC skeletons.
+	glConfig.max_skinning_bones = bound( 32, ( Q_max( glConfig.max_vertex_uniforms - MAX_RESERVED_UNIFORMS, 0 ) / 7 ), 76 );
 #else
 	glConfig.max_skinning_bones = bound( 0, ( Q_max( glConfig.max_vertex_uniforms - MAX_RESERVED_UNIFORMS, 0 ) / 7 ), MAXSTUDIOBONES );
 #endif

@@ -120,7 +120,7 @@ typedef struct xvert_s
 //	short		stcoord[2];		// ST texture coords (half-float)
 	float		stcoord[2];		// ST texture coords
 
-	char		boneid[4];		// control bones		
+	signed char	boneid[4];		// control bones		
 	byte		weight[4];		// boneweights
 	float		light[MAXLIGHTMAPS];	// packed color + unused entry (used for static vertex lighting)
 	float		deluxe[MAXLIGHTMAPS];	// packed lightdir
@@ -135,7 +135,7 @@ typedef struct xvert_s
 	float		stcoord[4];		// ST texture coords
 	float		lmcoord0[4];		// LM texture coords
 	float		lmcoord1[4];		// LM texture coords
-	char		boneid[4];		// control bones		
+	signed char	boneid[4];		// control bones		
 	byte		weight[4];		// boneweights
 	float		light[MAXLIGHTMAPS];	// packed color
 	float		deluxe[MAXLIGHTMAPS];	// packed lightdir
@@ -152,7 +152,7 @@ typedef struct
 	Vector		tangent;			// tangent
 	Vector		binormal;			// binormal
 	float		stcoord[2];		// ST texture coords
-	char		boneid[4];		// control bones
+	signed char	boneid[4];		// control bones
 } svert_v0_t;
 
 // single bone, has vertex lighting, 30 bytes
@@ -187,7 +187,7 @@ typedef struct
 	Vector		tangent;			// tangent
 	Vector		binormal;			// binormal
 	float		stcoord[2];		// ST texture coords
-	char		boneid[4];		// control bones		
+	signed char	boneid[4];		// control bones		
 	byte		weight[4];		// boneweights
 	float		light[MAXLIGHTMAPS];	// packed color
 	float		deluxe[MAXLIGHTMAPS];	// packed color

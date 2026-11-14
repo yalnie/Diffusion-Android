@@ -3566,6 +3566,9 @@ void R_MarkLeaves( void )
 		tr.sky_camera_origin = g_vecZero;
 	}
 
+	if( r_novis->value || FBitSet( RI->params, RP_OVERVIEW ) || !worldmodel->visdata || IsBuildingCubemaps() )
+		novis = true;
+
 	if( RI->viewleaf == RI->oldviewleaf && RI->viewleaf != NULL )
 	{
 		ENGINE_SET_PVS( RI->pvsorigin, r_pvs_radius ? r_pvs_radius->value : 2.0f, RI->visbytes, FBitSet( RI->params, RP_MERGEVISIBILITY ), novis );
@@ -3583,9 +3586,6 @@ void R_MarkLeaves( void )
 
 	// cache current values
 	RI->oldviewleaf = RI->viewleaf;
-
-	if( r_novis->value || FBitSet( RI->params, RP_OVERVIEW ) || !worldmodel->visdata || IsBuildingCubemaps() )
-		novis = true;
 
 	ENGINE_SET_PVS( RI->pvsorigin, r_pvs_radius ? r_pvs_radius->value : 2.0f, RI->visbytes, FBitSet( RI->params, RP_MERGEVISIBILITY ), novis );
 	R_UpdateEngineVisibility();
@@ -3758,7 +3758,7 @@ void R_WorldMarkVisibleFaces( void )
 		if( !(leaf->efrags || leaf->nummarksurfaces) )
 			continue;
 
-		if( !bBuildingCubemaps && !CHECKVISBIT( RI->visbytes, leaf->cluster ) )
+		if( !bBuildingCubemaps && ( leaf->cluster < 0 || !CHECKVISBIT( RI->visbytes, leaf->cluster )))
 			continue;
 		
 		if( bNormalPass && leaf->hasSky )

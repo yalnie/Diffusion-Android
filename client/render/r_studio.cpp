@@ -828,7 +828,7 @@ void CStudioModelRenderer::ComputeSkinMatrix( mstudioboneweight_t *boneweights, 
 
 	for( int i = 0; i < MAXSTUDIOBONEWEIGHTS; i++ )
 	{
-		if( boneweights->bone[i] != -1 )
+		if( (signed char)boneweights->bone[i] != -1 )
 			numbones++;
 	}
 
@@ -919,6 +919,8 @@ void CStudioModelRenderer::UploadBufferBase( vbomesh_t *pOut, svert_t *arrayxver
 	std::vector<svert_v0_t> arraysvert;
 	arraysvert.resize( pOut->numVerts );
 
+	const int maxBone = Q_max( glConfig.max_skinning_bones - 1, 0 );
+
 	// convert to GLSL-compacted array
 	#ifdef _OPENMP
 	#pragma omp parallel for
@@ -939,10 +941,10 @@ void CStudioModelRenderer::UploadBufferBase( vbomesh_t *pOut, svert_t *arrayxver
 		arraysvert[i].binormal[2] = arrayxvert[i].binormal[2];
 		arraysvert[i].stcoord[0] = arrayxvert[i].stcoord[0];
 		arraysvert[i].stcoord[1] = arrayxvert[i].stcoord[1];
-		arraysvert[i].boneid[0] = arrayxvert[i].boneid[0];
-		arraysvert[i].boneid[1] = arrayxvert[i].boneid[1];
-		arraysvert[i].boneid[2] = arrayxvert[i].boneid[2];
-		arraysvert[i].boneid[3] = arrayxvert[i].boneid[3];
+		arraysvert[i].boneid[0] = (arrayxvert[i].boneid[0] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[0];
+		arraysvert[i].boneid[1] = (arrayxvert[i].boneid[1] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[1];
+		arraysvert[i].boneid[2] = (arrayxvert[i].boneid[2] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[2];
+		arraysvert[i].boneid[3] = (arrayxvert[i].boneid[3] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[3];
 	}
 
 	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, pOut->vbo );
@@ -1036,6 +1038,8 @@ void CStudioModelRenderer::UploadBufferWeight( vbomesh_t *pOut, svert_t *arrayxv
 	std::vector<svert_v2_t> arraysvert;
 	arraysvert.resize( pOut->numVerts );
 
+	const int maxBone = Q_max( glConfig.max_skinning_bones - 1, 0 );
+
 	// convert to GLSL-compacted array
 	#ifdef _OPENMP
 	#pragma omp parallel for
@@ -1056,10 +1060,10 @@ void CStudioModelRenderer::UploadBufferWeight( vbomesh_t *pOut, svert_t *arrayxv
 		arraysvert[i].binormal[2] = arrayxvert[i].binormal[2];
 		arraysvert[i].stcoord[0] = arrayxvert[i].stcoord[0];
 		arraysvert[i].stcoord[1] = arrayxvert[i].stcoord[1];
-		arraysvert[i].boneid[0] = arrayxvert[i].boneid[0];
-		arraysvert[i].boneid[1] = arrayxvert[i].boneid[1];
-		arraysvert[i].boneid[2] = arrayxvert[i].boneid[2];
-		arraysvert[i].boneid[3] = arrayxvert[i].boneid[3];
+		arraysvert[i].boneid[0] = (arrayxvert[i].boneid[0] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[0];
+		arraysvert[i].boneid[1] = (arrayxvert[i].boneid[1] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[1];
+		arraysvert[i].boneid[2] = (arrayxvert[i].boneid[2] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[2];
+		arraysvert[i].boneid[3] = (arrayxvert[i].boneid[3] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[3];
 		arraysvert[i].weight[0] = arrayxvert[i].weight[0];
 		arraysvert[i].weight[1] = arrayxvert[i].weight[1];
 		arraysvert[i].weight[2] = arrayxvert[i].weight[2];
@@ -1098,6 +1102,8 @@ void CStudioModelRenderer::UploadBufferGeneric( vbomesh_t *pOut, svert_t *arrayx
 	std::vector<svert_v3_t> arraysvert;
 	arraysvert.resize( pOut->numVerts );
 
+	const int maxBone = Q_max( glConfig.max_skinning_bones - 1, 0 );
+
 	// convert to GLSL-compacted array
 	#ifdef _OPENMP
 	#pragma omp parallel for
@@ -1123,10 +1129,10 @@ void CStudioModelRenderer::UploadBufferGeneric( vbomesh_t *pOut, svert_t *arrayx
 		arraysvert[i].binormal[2] = arrayxvert[i].binormal[2];
 		arraysvert[i].stcoord[0] = arrayxvert[i].stcoord[0];
 		arraysvert[i].stcoord[1] = arrayxvert[i].stcoord[1];
-		arraysvert[i].boneid[0] = arrayxvert[i].boneid[0];
-		arraysvert[i].boneid[1] = arrayxvert[i].boneid[1];
-		arraysvert[i].boneid[2] = arrayxvert[i].boneid[2];
-		arraysvert[i].boneid[3] = arrayxvert[i].boneid[3];
+		arraysvert[i].boneid[0] = (arrayxvert[i].boneid[0] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[0];
+		arraysvert[i].boneid[1] = (arrayxvert[i].boneid[1] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[1];
+		arraysvert[i].boneid[2] = (arrayxvert[i].boneid[2] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[2];
+		arraysvert[i].boneid[3] = (arrayxvert[i].boneid[3] > maxBone) ? (signed char)maxBone : arrayxvert[i].boneid[3];
 		arraysvert[i].weight[0] = arrayxvert[i].weight[0];
 		arraysvert[i].weight[1] = arrayxvert[i].weight[1];
 		arraysvert[i].weight[2] = arrayxvert[i].weight[2];
@@ -1559,9 +1565,9 @@ void CStudioModelRenderer::MeshCreateBuffer( vbomesh_t *pOut, const mstudiomesh_
 	pglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, pOut->ibo );
 	pglBufferDataARB( GL_ELEMENT_ARRAY_BUFFER_ARB, m_nNumArrayElems * sizeof( unsigned int ), &m_arrayelems[0], GL_STATIC_DRAW_ARB );
 
-	// don't forget to unbind them
-	pglBindVertexArray( GL_FALSE );
+	// don't forget to unbind them (unbind GL_ARRAY_BUFFER before VAO; EBO is VAO state so unbind it after)
 	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+	pglBindVertexArray( GL_FALSE );
 	pglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, 0 );
 
 	// update stats
