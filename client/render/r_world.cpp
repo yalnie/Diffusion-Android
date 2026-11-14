@@ -1797,8 +1797,8 @@ static void Mod_CreateBufferObject( void )
 	pglEnableVertexAttribArrayARB( ATTR_INDEX_LIGHT_STYLES );
 
 	// don't forget to unbind them
-	pglBindVertexArray( GL_FALSE );
 	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+	pglBindVertexArray( GL_FALSE );
 
 	world->cacheSize = world->numvertexes * sizeof( bvert_t );
 
@@ -2810,6 +2810,7 @@ void R_DrawShadowBrushList( void )
 	GL_CleanUpTextureUnits( 0 );
 	GL_BindShader( NULL );
 	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+	pglBindVertexArray( 0 );
 	tr.num_draw_surfaces = 0;
 
 	if( R_GrassUseBufferObject() )
@@ -2817,7 +2818,6 @@ void R_DrawShadowBrushList( void )
 	else
 		R_DrawGrass();
 
-	pglBindVertexArray( 0 );
 	GL_BindShader( NULL );
 	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
 
@@ -2897,17 +2897,14 @@ void R_DrawBrushList( void )
 		const int iTexnum = es->gl_texturenum;
 		const material_t &MT = (tex->anim_total > 0) ? tr.materials[tex->gl_texturenum] : tr.materials[iTexnum];
 
+		GLenum next_cull = GL_FRONT;
 		if( tr.viewparams.waterlevel >= 3 && RP_NORMALPASS() && FBitSet( s->flags, SURF_WATER ) )
-			GL_Cull( GL_BACK );
+			next_cull = GL_BACK;
 		else if( es->culltype == CULL_OTHER ) // probably a twoside texture
-			GL_Cull( GL_NONE );
-		else
-			GL_Cull( GL_FRONT );
+			next_cull = GL_NONE;
 
-		if( cached_cull != glState.faceCull )
+		if( cached_cull != next_cull )
 			flush_buffer = true;
-
-		cached_cull = glState.faceCull;
 
 		if( (i == 0) || (RI->currentshader != &glsl_programs[entry->hProgram]) )
 			flush_buffer = true;
@@ -2919,9 +2916,6 @@ void R_DrawBrushList( void )
 			flush_buffer = true;
 
 		if( cached_texture != iTexnum )
-			flush_buffer = true;
-
-		if( cached_cull != glState.faceCull )
 			flush_buffer = true;
 
 		const int bLandscape = FBitSet( s->flags, SURF_LANDSCAPE ) ? 1 : 0;
@@ -2945,6 +2939,9 @@ void R_DrawBrushList( void )
 			}
 			flush_buffer = false;
 		}
+
+		GL_Cull( next_cull );
+		cached_cull = next_cull;
 
 		// begin draw the sorted list
 		if( (i == 0) || (RI->currentshader != &glsl_programs[entry->hProgram]) )
@@ -3256,6 +3253,9 @@ void R_DrawBrushList( void )
 	GL_CleanUpTextureUnits( 0 );
 	GL_BindShader( NULL );
 	GL_Cull( GL_FRONT );
+
+	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+	pglBindVertexArray( 0 );
 
 	// draw grass on visible surfaces
 	if( R_GrassUseBufferObject() )

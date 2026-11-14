@@ -137,6 +137,9 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 
 	m_iNumVerts = m_iNumIndex = 0;
 
+	pglBindVertexArray( 0 );
+	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+
 	pglEnableClientState( GL_VERTEX_ARRAY );
 	pglVertexPointer( 3, GL_FLOAT, 0, m_vertexarray );
 

@@ -1330,6 +1330,9 @@ void CStudioModelRenderer :: DrawDecal( cl_entity_t *e )
 	GL_DepthMask( GL_FALSE );
 	GL_AlphaTest( GL_FALSE );
 
+	pglBindVertexArray( 0 );
+	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+
 	GL_SelectTexture( GL_TEXTURE0 ); // keep texcoords at 0-th unit
 	pglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	pglTexCoordPointer( 4, GL_FLOAT, 16, m_arraycoord );

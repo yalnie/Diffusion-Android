@@ -6318,6 +6318,9 @@ void CStudioModelRenderer::DrawLightForMeshList( plight_t *pl )
 		DrawMeshFromBuffer( pMesh );
 	}
 
+	pglBindVertexArray( GL_FALSE );
+	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+	pglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, 0 );
 	GL_Cull( GL_FRONT );
 }
 

@@ -1687,6 +1687,9 @@ void R_DrawGrass( qboolean lightpass )
 	if( !lightpass && !shadowpass )
 		normalpass = true;
 
+	pglBindVertexArray( 0 );
+	pglBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+
 	GL_SelectTexture( GL_TEXTURE0 ); // keep texcoords at 0-th unit
 	pglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	pglTexCoordPointer( 2, GL_SHORT, sizeof( grassvert_t ), grassverts->t );
