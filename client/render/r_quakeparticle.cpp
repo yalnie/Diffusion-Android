@@ -19,7 +19,6 @@ GNU General Public License for more details.
 #include <mathlib.h>
 #include "r_local.h"
 #include "com_model.h"
-#include "r_studioint.h"
 #include "r_quakeparticle.h"
 #include "pm_defs.h"
 #include "event_api.h"
@@ -29,13 +28,15 @@ GNU General Public License for more details.
 #include "weaponinfo.h"
 #include "r_shader.h"
 
+#define MAX_PARTICLE_VERTICES 65536
+
 CQuakePartSystem g_pParticles;
 
-static Vector m_vertexarray[65536];
-static byte	m_colorarray[65536][4];
-static Vector2D	m_coordsarray[65536];
-static word	m_indexarray[65536 * 4];
-static int	m_iNumVerts, m_iNumIndex;
+static Vector m_vertexarray[MAX_PARTICLE_VERTICES];
+static byte	m_colorarray[MAX_PARTICLE_VERTICES][4];
+static Vector2D	m_coordsarray[MAX_PARTICLE_VERTICES];
+static word	m_indexarray[MAX_PARTICLE_VERTICES];
+static int m_iNumVerts, m_iNumIndex;
 
 // diffusion - now particles are rendering through RangeElements, fast as heck! :)
 // TODO - is it possible to allocate those memblock automatically for each texture?..
@@ -55,7 +56,7 @@ MemBlock<CQuakePart>ParticleArray_WaterDrop( MAX_PARTICLES ); // TYPE_WATERDROP
 MemBlock<CQuakePart>ParticleArray_SingleDrop( MAX_PARTICLES ); // TYPE_SINGLEDROP
 MemBlock<CQuakePart>ParticleArray_WaterFall( MAX_PARTICLES ); // TYPE_WATERFALL
 MemBlock<CQuakePart>ParticleArray_Sparkles( MAX_PARTICLES ); // TYPE_SPARKLES
-int partcounter = 0;
+static int partcounter = 0;
 
 //===============================================================================
 // InitializeParticle: set default parameters for a single particle
@@ -86,6 +87,7 @@ CQuakePart InitializeParticle( void )
 	dst.m_flDieTime = 0;
 	dst.m_flSinSpeed = 0;
 	dst.m_vecView = g_vecZero;
+	dst.m_flLastThink = 0.0f;
 
 	// only used with flag FPART_DISTANCESCALE
 	dst.m_flMinScale = 1.0f;
@@ -154,9 +156,25 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 
 	GL_Bind( GL_TEXTURE0, curParticle->m_hTexture );
 
+	if( glState.drawTrans )
+	{
+		if( UseAdditive )
+			GL_BlendFunc( GL_SRC_ALPHA, GL_ONE );
+		else
+			GL_BlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	}
+	else
+	{
+		GL_BlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		GL_AlphaTest( GL_TRUE );
+		GL_AlphaFunc( GL_GREATER, 0.25f );
+	}
+
+	pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+
 	while( curParticle != NULL )
 	{
-		if( (m_iNumVerts + 4) >= 65536 )
+		if( (m_iNumVerts + 4) >= MAX_PARTICLE_VERTICES )
 		{
 			// it's time to flush
 			if( GL_Support( R_DRAW_RANGEELEMENTS_EXT ) )
@@ -170,6 +188,12 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 		// fadeout
 		float time = (tr.time - curParticle->m_flTime);
 		float time2 = time * time;
+
+		const float dt = tr.time - curParticle->m_flLastThink;
+		const bool bThink = (dt > 0.0f);
+		if( bThink )
+			curParticle->m_flLastThink = tr.time;
+
 		float curAlpha = curParticle->m_flAlpha + curParticle->m_flAlphaVelocity * time;
 		float curRadius = curParticle->m_flRadius + curParticle->m_flRadiusVelocity * time;
 		if( curParticle->m_flRadiusMax > 0 && curRadius > curParticle->m_flRadiusMax )
@@ -181,7 +205,7 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 		curColor.y = bound( 0.0f, curColor.y, 1.0f );
 		curColor.z = bound( 0.0f, curColor.z, 1.0f );
 		
-		if( curParticle->ParticleType == TYPE_DUSTMOTE )
+		if( bThink && curParticle->ParticleType == TYPE_DUSTMOTE )
 		{
 			// add velocity for nearby dustmotes
 			for( int i = 1; i <= tr.viewparams.maxclients; i++ )
@@ -202,7 +226,7 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 		}
 
 		// special case for waterfall
-		if( curParticle->ParticleType == TYPE_WATERFALL )
+		if( bThink && curParticle->ParticleType == TYPE_WATERFALL )
 		{
 			curParticle->m_vecVelocity.x = CL_UTIL_Approach( 0.0f, curParticle->m_vecVelocity.x, 50 * g_fFrametime );
 			curParticle->m_vecVelocity.y = CL_UTIL_Approach( 0.0f, curParticle->m_vecVelocity.y, 50 * g_fFrametime );
@@ -244,7 +268,7 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 		
 		if( FBitSet( curParticle->m_iFlags, FPART_FADEIN ) )
 		{
-			if( curAlpha >= curParticle->m_flAlpha )
+			if( curAlpha >= curParticle->m_flAlpha && time > 0.0f )
 			{
 				curParticle->m_vecVelocity = (org - curParticle->m_vecOrigin) / time;
 				curParticle->m_vecOrigin = org;
@@ -297,8 +321,6 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 		else if( FBitSet( curParticle->m_iFlags, FPART_UNDERWATER ) )
 		{
 			// underwater particle
-			org2 = Vector( org.x, org.y, org.z + curRadius );
-
 			if( contents != CONTENTS_WATER && contents != CONTENTS_SLIME && contents != CONTENTS_LAVA )
 			{			
 				// not underwater
@@ -317,8 +339,8 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 			// special case
 			if( curParticle->ParticleType == TYPE_WATERDROP )
 			{
-				R_MakeWaterSplash( curParticle->m_vecOrigin, org, 3 );
-				g_pParticles.WaterLandingDroplet( 0, curParticle->m_vecLastOrg );
+				Vector splash = R_MakeWaterSplash( curParticle->m_vecOrigin, org, 3 );
+				g_pParticles.WaterLandingDroplet( 0, splash.IsNull() ? curParticle->m_vecLastOrg : splash );
 			}
 
 			// not underwater
@@ -359,6 +381,7 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 				curParticle->m_flAlpha = curAlpha;
 				curParticle->m_flRadius = curRadius;
 				curParticle->m_vecOrigin = org;
+				curParticle->m_flRotation = curRotation;
 
 				// don't stretch
 				curParticle->m_iFlags &= ~FPART_STRETCH;
@@ -417,6 +440,7 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 				curParticle->m_flAlpha = curAlpha;
 				curParticle->m_flRadius = curRadius;
 				curParticle->m_vecOrigin = org;
+				curParticle->m_flRotation = curRotation;
 
 				// don't stretch
 				curParticle->m_iFlags &= ~FPART_STRETCH;
@@ -426,11 +450,9 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 		}
 
 		// save current origin if needed
-		if( RP_NORMALPASS() )//FBitSet( curParticle->m_iFlags, (FPART_BOUNCE | FPART_STRETCH) ) )
-		{
-			org2 = curParticle->m_vecLastOrg;
+		org2 = curParticle->m_vecLastOrg;
+		if( RP_NORMALPASS() )
 			curParticle->m_vecLastOrg = org;
-		}
 
 		if( FBitSet( curParticle->m_iFlags, FPART_INSTANT ) )
 		{
@@ -468,9 +490,12 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 
 		// clear any added velocity this frame
 		curParticle->m_vecVelocity -= curParticle->m_vecAddedVelocity;
-		curParticle->m_vecAddedVelocity.x = CL_UTIL_Approach( 0, curParticle->m_vecAddedVelocity.x, g_fFrametime );
-		curParticle->m_vecAddedVelocity.y = CL_UTIL_Approach( 0, curParticle->m_vecAddedVelocity.y, g_fFrametime );
-		curParticle->m_vecAddedVelocity.z = CL_UTIL_Approach( 0, curParticle->m_vecAddedVelocity.z, g_fFrametime );
+		if( bThink )
+		{
+			curParticle->m_vecAddedVelocity.x = CL_UTIL_Approach( 0, curParticle->m_vecAddedVelocity.x, g_fFrametime );
+			curParticle->m_vecAddedVelocity.y = CL_UTIL_Approach( 0, curParticle->m_vecAddedVelocity.y, g_fFrametime );
+			curParticle->m_vecAddedVelocity.z = CL_UTIL_Approach( 0, curParticle->m_vecAddedVelocity.z, g_fFrametime );
+		}
 
 		// experimental stuff
 		/*
@@ -526,7 +551,7 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 			{
 				if( curParticle->newLight <= 0.0f )
 					curParticle->newLight = fLight;
-				else
+				else if( bThink )
 					curParticle->newLight = CL_UTIL_Approach( fLight, curParticle->newLight, g_fFrametime * 3 );
 		
 				curColor *= curParticle->newLight;
@@ -593,63 +618,54 @@ void CQuakePartSystem::DrawParticles( MemBlock<CQuakePart> &ParticleArray )
 			verts[3] = org - axis[1] - axis[2];
 		}
 
-		m_coordsarray[m_iNumVerts].x = 0.0f;
-		m_coordsarray[m_iNumVerts].y = 0.0f;
-		m_colorarray[m_iNumVerts][0] = curColor.x * 255;
-		m_colorarray[m_iNumVerts][1] = curColor.y * 255;
-		m_colorarray[m_iNumVerts][2] = curColor.z * 255;
-		m_colorarray[m_iNumVerts][3] = curAlpha * 255;
-		m_vertexarray[m_iNumVerts] = verts[0];
-		m_indexarray[m_iNumIndex++] = m_iNumVerts++;
+		{ // move out of the skip_particle label's scope...
+			const byte alphaByte = (byte)(bound( 0.0f, curAlpha, 1.0f ) * 255.0f);
+			const byte r = (byte)(curColor.x * 255.0f);
+			const byte g = (byte)(curColor.y * 255.0f);
+			const byte b = (byte)(curColor.z * 255.0f);
 
-		m_coordsarray[m_iNumVerts].x = 0.0f;
-		m_coordsarray[m_iNumVerts].y = 1.0f;
-		m_colorarray[m_iNumVerts][0] = curColor.x * 255;
-		m_colorarray[m_iNumVerts][1] = curColor.y * 255;
-		m_colorarray[m_iNumVerts][2] = curColor.z * 255;
-		m_colorarray[m_iNumVerts][3] = curAlpha * 255;
-		m_vertexarray[m_iNumVerts] = verts[1];
-		m_indexarray[m_iNumIndex++] = m_iNumVerts++;
+			m_coordsarray[m_iNumVerts].x = 0.0f;
+			m_coordsarray[m_iNumVerts].y = 0.0f;
+			m_colorarray[m_iNumVerts][0] = r;
+			m_colorarray[m_iNumVerts][1] = g;
+			m_colorarray[m_iNumVerts][2] = b;
+			m_colorarray[m_iNumVerts][3] = alphaByte;
+			m_vertexarray[m_iNumVerts] = verts[0];
+			m_indexarray[m_iNumIndex++] = m_iNumVerts++;
 
-		m_coordsarray[m_iNumVerts].x = 1.0f;
-		m_coordsarray[m_iNumVerts].y = 1.0f;
-		m_colorarray[m_iNumVerts][0] = curColor.x * 255;
-		m_colorarray[m_iNumVerts][1] = curColor.y * 255;
-		m_colorarray[m_iNumVerts][2] = curColor.z * 255;
-		m_colorarray[m_iNumVerts][3] = curAlpha * 255;
-		m_vertexarray[m_iNumVerts] = verts[2];
-		m_indexarray[m_iNumIndex++] = m_iNumVerts++;
+			m_coordsarray[m_iNumVerts].x = 0.0f;
+			m_coordsarray[m_iNumVerts].y = 1.0f;
+			m_colorarray[m_iNumVerts][0] = r;
+			m_colorarray[m_iNumVerts][1] = g;
+			m_colorarray[m_iNumVerts][2] = b;
+			m_colorarray[m_iNumVerts][3] = alphaByte;
+			m_vertexarray[m_iNumVerts] = verts[1];
+			m_indexarray[m_iNumIndex++] = m_iNumVerts++;
 
-		m_coordsarray[m_iNumVerts].x = 1.0f;
-		m_coordsarray[m_iNumVerts].y = 0.0f;
-		m_colorarray[m_iNumVerts][0] = curColor.x * 255;
-		m_colorarray[m_iNumVerts][1] = curColor.y * 255;
-		m_colorarray[m_iNumVerts][2] = curColor.z * 255;
-		m_colorarray[m_iNumVerts][3] = curAlpha * 255;
-		m_vertexarray[m_iNumVerts] = verts[3];
-		m_indexarray[m_iNumIndex++] = m_iNumVerts++;
+			m_coordsarray[m_iNumVerts].x = 1.0f;
+			m_coordsarray[m_iNumVerts].y = 1.0f;
+			m_colorarray[m_iNumVerts][0] = r;
+			m_colorarray[m_iNumVerts][1] = g;
+			m_colorarray[m_iNumVerts][2] = b;
+			m_colorarray[m_iNumVerts][3] = alphaByte;
+			m_vertexarray[m_iNumVerts] = verts[2];
+			m_indexarray[m_iNumIndex++] = m_iNumVerts++;
+
+			m_coordsarray[m_iNumVerts].x = 1.0f;
+			m_coordsarray[m_iNumVerts].y = 0.0f;
+			m_colorarray[m_iNumVerts][0] = r;
+			m_colorarray[m_iNumVerts][1] = g;
+			m_colorarray[m_iNumVerts][2] = b;
+			m_colorarray[m_iNumVerts][3] = alphaByte;
+			m_vertexarray[m_iNumVerts] = verts[3];
+			m_indexarray[m_iNumIndex++] = m_iNumVerts++;
+		}
 
 		ParticleArray.MoveNext();
 
 	skip_particle:
 		curParticle = ParticleArray.GetCurrent();
 	}
-
-	if( glState.drawTrans )
-	{
-		if( UseAdditive )
-			GL_BlendFunc( GL_SRC_ALPHA, GL_ONE );
-		else
-			GL_BlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	}
-	else
-	{
-		GL_BlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		GL_AlphaTest( GL_TRUE );
-		GL_AlphaFunc( GL_GREATER, 0.25f );
-	}
-
-	pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
 	if( m_iNumVerts && m_iNumIndex )
 	{
@@ -690,6 +706,11 @@ bool CQuakePart::Evaluate( float gravity )
 	float time = (tr.time - m_flTime);
 	float time2 = time * time;
 
+	const float dt = tr.time - m_flLastThink;
+	const bool bThink = (dt > 0.0f);
+	if( bThink )
+		m_flLastThink = tr.time;
+
 	float curAlpha;
 	float curRadius = m_flRadius + m_flRadiusVelocity * time;
 	if( m_flRadiusMax > 0 && curRadius > m_flRadiusMax )
@@ -697,7 +718,7 @@ bool CQuakePart::Evaluate( float gravity )
 	float curLength = m_flLength + m_flLengthVelocity * time;
 	float curRotation = m_flRotation + m_flRotationVelocity * time;
 
-	if( ParticleType == TYPE_DUSTMOTE )
+	if( bThink && ParticleType == TYPE_DUSTMOTE )
 	{
 		// add velocity for nearby dustmotes
 		for( int i = 1; i <= tr.viewparams.maxclients; i++ )
@@ -754,7 +775,7 @@ bool CQuakePart::Evaluate( float gravity )
 
 	if( FBitSet( m_iFlags, FPART_FADEIN ) )
 	{
-		if( curAlpha >= m_flAlpha )
+		if( curAlpha >= m_flAlpha && time > 0.0f )
 		{
 			m_vecVelocity = (org - m_vecOrigin) / time;
 			m_vecOrigin = org;
@@ -783,8 +804,6 @@ bool CQuakePart::Evaluate( float gravity )
 	else if( FBitSet( m_iFlags, FPART_UNDERWATER ) )
 	{
 		// underwater particle
-		org2 = Vector( org.x, org.y, org.z + curRadius );
-
 		if( contents != CONTENTS_WATER && contents != CONTENTS_SLIME && contents != CONTENTS_LAVA )
 			return false; // not underwater
 	}
@@ -823,6 +842,7 @@ bool CQuakePart::Evaluate( float gravity )
 			m_flAlpha = curAlpha;
 			m_flRadius = curRadius;
 			m_vecOrigin = org;
+			m_flRotation = curRotation;
 
 			// don't stretch
 			m_iFlags &= ~FPART_STRETCH;
@@ -881,6 +901,7 @@ bool CQuakePart::Evaluate( float gravity )
 			m_flAlpha = curAlpha;
 			m_flRadius = curRadius;
 			m_vecOrigin = org;
+			m_flRotation = curRotation;
 
 			// don't stretch
 			m_iFlags &= ~FPART_STRETCH;
@@ -890,11 +911,9 @@ bool CQuakePart::Evaluate( float gravity )
 	}
 
 	// save current origin if needed
-	if( RP_NORMALPASS() )//FBitSet( m_iFlags, (FPART_BOUNCE | FPART_STRETCH) ) )
-	{
-		org2 = m_vecLastOrg;
+	org2 = m_vecLastOrg;
+	if( RP_NORMALPASS() )
 		m_vecLastOrg = org;
-	}
 
 	if( FBitSet( m_iFlags, FPART_INSTANT ) )
 	{
@@ -932,9 +951,12 @@ bool CQuakePart::Evaluate( float gravity )
 
 	// clear any added velocity this frame
 	m_vecVelocity -= m_vecAddedVelocity;
-	m_vecAddedVelocity.x = CL_UTIL_Approach( 0, m_vecAddedVelocity.x, g_fFrametime );
-	m_vecAddedVelocity.y = CL_UTIL_Approach( 0, m_vecAddedVelocity.y, g_fFrametime );
-	m_vecAddedVelocity.z = CL_UTIL_Approach( 0, m_vecAddedVelocity.z, g_fFrametime );
+	if( bThink )
+	{
+		m_vecAddedVelocity.x = CL_UTIL_Approach( 0, m_vecAddedVelocity.x, g_fFrametime );
+		m_vecAddedVelocity.y = CL_UTIL_Approach( 0, m_vecAddedVelocity.y, g_fFrametime );
+		m_vecAddedVelocity.z = CL_UTIL_Approach( 0, m_vecAddedVelocity.z, g_fFrametime );
+	}
 	
 	// cull invisible parts
 	if( R_CullSphere( org, curRadius ) )
@@ -968,7 +990,7 @@ bool CQuakePart::Evaluate( float gravity )
 		{
 			if( newLight <= 0.0f )
 				newLight = fLight;
-			else
+			else if( bThink )
 				newLight = CL_UTIL_Approach( fLight, newLight, g_fFrametime * 3 );
 
 			curColor *= newLight;
@@ -1020,7 +1042,7 @@ bool CQuakePart::Evaluate( float gravity )
 		axis[0] = axis[0].Normalize();
 
 		org3 = org + (axis[1] * -curLength);
-		axis[2] *= m_flRadius;
+		axis[2] *= curRadius;
 
 		// setup vertexes
 		verts[0] = org3 - axis[2];
@@ -1137,6 +1159,7 @@ CQuakePartSystem :: CQuakePartSystem( void )
 	ParticleArray_WaterDrop.Clear();
 	ParticleArray_SingleDrop.Clear();
 	ParticleArray_WaterFall.Clear();
+	ParticleArray_Sparkles.Clear();
 
 	partcounter = 0;
 
@@ -1195,6 +1218,7 @@ void CQuakePartSystem :: Clear( void )
 	ParticleArray_WaterDrop.Clear();
 	ParticleArray_SingleDrop.Clear();
 	ParticleArray_WaterFall.Clear();
+	ParticleArray_Sparkles.Clear();
 
 	partcounter = 0;
 
@@ -1295,7 +1319,9 @@ void CQuakePartSystem :: CreateEffect( int EntIndex, const char *name, const Vec
 	if( FBitSet( flags, FPART_NOTWATER ) && POINT_CONTENTS( (float *)&origin ) == CONTENTS_WATER )
 		return;
 
-	int count = bound( 1, pInfo->count.Random(), 1024 ); // don't alloc too many particles
+	// don't alloc too many particles
+	int count = pInfo->count.Random();
+	count = bound( 1, count, 1024 );
 
 	int m_hTexture = m_hDefaultParticle;
 	CQuakePart src = InitializeParticle();
@@ -1304,7 +1330,8 @@ void CQuakePartSystem :: CreateEffect( int EntIndex, const char *name, const Vec
 	{
 		if( pInfo->m_pSprite )
 		{
-			int frame = bound( 0, pInfo->frame.Random(), pInfo->m_pSprite->numframes - 1 );
+			int frame = pInfo->frame.Random();
+			frame = bound( 0, frame, pInfo->m_pSprite->numframes - 1 );
 			mspriteframe_t *pframe = R_GetSpriteFrame( pInfo->m_pSprite, frame );
 			if( pframe ) m_hTexture = pframe->gl_texturenum;
 		}
@@ -1796,11 +1823,12 @@ bool CQuakePartSystem :: AddParticle( CQuakePart *src, int texture, int flags )
 		return false;
 	}
 
-	if( src->EntIndex > 0 )
-	{
-		if( ParticleCountPerEnt[src->EntIndex] >= MAX_PARTICLES_PER_ENTITY )
-			return false;
-	}
+	int entIndex = src->EntIndex;
+	if( entIndex < 0 || entIndex >= (int)(sizeof( ParticleCountPerEnt ) / sizeof( ParticleCountPerEnt[0] )) )
+		entIndex = 0;
+
+	if( entIndex > 0 && ParticleCountPerEnt[entIndex] >= MAX_PARTICLES_PER_ENTITY )
+		return false;
 
 	CQuakePart *dst = NULL;
 	
@@ -1860,50 +1888,24 @@ bool CQuakePartSystem :: AddParticle( CQuakePart *src, int texture, int flags )
 	if( !dst )
 		return false;
 
-	if( texture )
-		dst->m_hTexture = texture;
-	else
-		dst->m_hTexture = m_hDefaultParticle;
+	CQuakePart *savedNext = dst->pNext;
+	*dst = *src;
+	dst->pNext = savedNext;
 
-	dst->m_flTime = tr.time;	
+	dst->m_hTexture = texture ? texture : m_hDefaultParticle;
+	dst->m_flTime = tr.time;
 	dst->m_iFlags = flags;
-	dst->m_vecOrigin = src->m_vecOrigin;
-	dst->m_vecVelocity = src->m_vecVelocity;
-	dst->m_vecAccel = src->m_vecAccel;
-	dst->m_vecColor = src->m_vecColor;
-	dst->m_vecColorVelocity = src->m_vecColorVelocity;
-	dst->m_flAlpha = src->m_flAlpha;
-	dst->m_flStartAlpha = src->m_flStartAlpha;
+	dst->m_vecLastOrg = dst->m_vecOrigin;
+	dst->newLight = 0.0f;
+	dst->EntIndex = entIndex;
+	dst->m_flLastThink = tr.time;
 
-	dst->m_flRadius = src->m_flRadius;
-	if( flags & FPART_DISTANCESCALE )
-	{
-		dst->m_flMinScale = src->m_flMinScale;
-		dst->m_flMaxScale = src->m_flMaxScale;
-	}
-	dst->m_flLength = src->m_flLength;
-	dst->m_flRotation = src->m_flRotation;
-	dst->m_flRotationVelocity = src->m_flRotationVelocity;
-	dst->m_flAlphaVelocity = src->m_flAlphaVelocity;
-	dst->m_flRadiusVelocity = src->m_flRadiusVelocity;
-	dst->m_flRadiusMax = src->m_flRadiusMax;
-	dst->m_flLengthVelocity = src->m_flLengthVelocity;
-	dst->m_flBounceFactor = src->m_flBounceFactor;
-	dst->m_flDistance = src->m_flDistance;
-	dst->ParticleType = src->ParticleType;
-	dst->m_vecAddedVelocity = src->m_vecAddedVelocity;
-	dst->EntIndex = src->EntIndex;
-	dst->m_flDieTime = src->m_flDieTime;
-	dst->m_flSinSpeed = src->m_flSinSpeed;
-	dst->m_vecView = src->m_vecView;
-//	dst->AlphaDownScale = 1.0f;
-
-	// needs to save old origin
-	if( 1 )//FBitSet( flags, (FPART_BOUNCE | FPART_FRICTION) ) )
-		dst->m_vecLastOrg = dst->m_vecOrigin;
+	if( FBitSet( flags, FPART_FADEIN ) && dst->m_flAlphaVelocity >= 0.0f )
+		ClearBits( dst->m_iFlags, FPART_FADEIN );
 
 	partcounter++;
-	ParticleCountPerEnt[src->EntIndex]++;
+	if( entIndex > 0 )
+		ParticleCountPerEnt[entIndex]++;
 
 	return true;
 }
@@ -2238,11 +2240,11 @@ void CQuakePartSystem::SmokeVolume( int EntIndex, int Particle, const Vector &po
 		src.m_vecOrigin.z = pos.z + RANDOM_FLOAT( -posRand, posRand );
 		src.m_vecVelocity = PushVelocity;
 		if( PushVelocityRand.x != 0.0f )
-			src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.x, PushVelocityRand.x );
+			src.m_vecVelocity.x += RANDOM_FLOAT( -PushVelocityRand.x, PushVelocityRand.x );
 		if( PushVelocityRand.y != 0.0f )
-			src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.y, PushVelocityRand.y );
+			src.m_vecVelocity.y += RANDOM_FLOAT( -PushVelocityRand.y, PushVelocityRand.y );
 		if( PushVelocityRand.z != 0.0f )
-			src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.z, PushVelocityRand.z );
+			src.m_vecVelocity.z += RANDOM_FLOAT( -PushVelocityRand.z, PushVelocityRand.z );
 		src.m_flAlpha = Alpha;
 		src.m_flAlphaVelocity = -RANDOM_FLOAT( 0.3f, 0.666f ) * Alpha;
 		src.m_flRadius = Scale;
@@ -2273,11 +2275,11 @@ void CQuakePartSystem::SmokeVolume( int EntIndex, int Particle, const Vector &po
 		src.m_vecVelocity.y = PushVelocity.y;
 		src.m_vecVelocity.z = PushVelocity.z + RANDOM_FLOAT(-5, 5);
 		if( PushVelocityRand.x != 0.0f )
-			src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.x, PushVelocityRand.x );
+			src.m_vecVelocity.x += RANDOM_FLOAT( -PushVelocityRand.x, PushVelocityRand.x );
 		if( PushVelocityRand.y != 0.0f )
-			src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.y, PushVelocityRand.y );
+			src.m_vecVelocity.y += RANDOM_FLOAT( -PushVelocityRand.y, PushVelocityRand.y );
 		if( PushVelocityRand.z != 0.0f )
-			src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.z, PushVelocityRand.z );
+			src.m_vecVelocity.z += RANDOM_FLOAT( -PushVelocityRand.z, PushVelocityRand.z );
 		src.m_flAlpha = Alpha;
 		src.m_flAlphaVelocity = -RANDOM_FLOAT( 0.4f, 0.6f ) * Alpha;
 		src.m_flRadius = Scale;
@@ -2670,11 +2672,11 @@ void CQuakePartSystem::Waterfall( int EntIndex, const Vector &pos, const Vector 
 	src.m_vecOrigin.z = pos.z + RANDOM_FLOAT( -posRand, posRand );
 	src.m_vecVelocity = PushVelocity; // special case for TYPE_WATERFALL - x and y will be scaled down to 0 during drawing
 	if( PushVelocityRand.x != 0.0f )
-		src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.x, PushVelocityRand.x );
+		src.m_vecVelocity.x += RANDOM_FLOAT( -PushVelocityRand.x, PushVelocityRand.x );
 	if( PushVelocityRand.y != 0.0f )
-		src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.y, PushVelocityRand.y );
+		src.m_vecVelocity.y += RANDOM_FLOAT( -PushVelocityRand.y, PushVelocityRand.y );
 	if( PushVelocityRand.z != 0.0f )
-		src.m_vecVelocity += RANDOM_FLOAT( -PushVelocityRand.z, PushVelocityRand.z );
+		src.m_vecVelocity.z += RANDOM_FLOAT( -PushVelocityRand.z, PushVelocityRand.z );
 	src.m_vecAccel = Vector( 0, 0, -tr.movevars->gravity * 0.1f );
 	src.m_flAlpha = Alpha;
 	src.m_flAlphaVelocity = -0.5 * Alpha;

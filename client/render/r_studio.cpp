@@ -2399,7 +2399,8 @@ int CStudioModelRenderer::StudioComputeBBox( cl_entity_t *e )
 	if( !StudioExtractBbox( e, m_pStudioHeader, e->curstate.sequence, mins, maxs ) )
 		return false;
 
-	if( m_pModelInstance->m_bProceduralBones )
+	// diffusion - added player check. This fixes the bounding box (r_drawentities 5)
+	if( m_pModelInstance->m_bProceduralBones || e->player )
 	{
 		mins = e->curstate.mins;
 		maxs = e->curstate.maxs;
@@ -4766,6 +4767,9 @@ StudioDrawHulls
 */
 void CStudioModelRenderer::StudioDrawHulls( void )
 {
+	if( FBitSet( RI->params, RP_SHADOWPASS ) )
+		return;
+
 	float alpha, lv;
 	int	i, j;
 
@@ -4824,6 +4828,9 @@ StudioDrawAbsBBox
 */
 void CStudioModelRenderer::StudioDrawAbsBBox( void )
 {
+	if( FBitSet( RI->params, RP_SHADOWPASS ) )
+		return;
+
 	Vector p[8], tmp;
 	float lv;
 	int i;
@@ -4872,6 +4879,9 @@ StudioDrawBones
 */
 void CStudioModelRenderer::StudioDrawBones( void )
 {
+	if( FBitSet( RI->params, RP_SHADOWPASS ) )
+		return;
+
 	mstudiobone_t *pbones = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
 	Vector point;
 
@@ -4926,6 +4936,9 @@ void CStudioModelRenderer::StudioDrawBones( void )
 
 void CStudioModelRenderer::StudioDrawAttachments( void )
 {
+	if( FBitSet( RI->params, RP_SHADOWPASS ) )
+		return;
+
 	GL_Texture2D( GL_FALSE );
 	GL_DepthTest( GL_FALSE );
 
@@ -5226,6 +5239,9 @@ static Vector RagdollVisSwingDir( float ay, float az )
 
 void CStudioModelRenderer::StudioDrawRagdollLimits( void )
 {
+	if( FBitSet( RI->params, RP_SHADOWPASS ) )
+		return;
+
 	const RagdollVisConfig *cfg = RagdollVisGetConfig( m_pRenderModel->name );
 
 	if( !cfg->valid )
